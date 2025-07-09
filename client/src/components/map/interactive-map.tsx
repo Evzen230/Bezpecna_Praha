@@ -6,6 +6,13 @@ import AlertDetailModal from "@/components/alerts/alert-detail-modal";
 import AlertFormModal from "@/components/admin/alert-form-modal";
 import mapImageUrl from "@assets/Snímek obrazovky 2025-07-09 202523_1752088416796.jpg";
 
+interface DrawnRoute {
+  id: string;
+  points: { x: number; y: number }[];
+  color: string;
+  name: string;
+}
+
 interface InteractiveMapProps {
   categoryFilter: string;
   severityFilter: string;
@@ -42,7 +49,12 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
     const x = ((e.clientX - rect.left - transform.x) / transform.scale / rect.width) * 100;
     const y = ((e.clientY - rect.top - transform.y) / transform.scale / rect.height) * 100;
 
-    setPendingPosition({ x, y });
+    // Ensure positions are within bounds
+    const clampedX = Math.max(0, Math.min(100, x));
+    const clampedY = Math.max(0, Math.min(100, y));
+
+    console.log('Map clicked at:', { x: clampedX, y: clampedY });
+    setPendingPosition({ x: clampedX, y: clampedY });
     setShowAlertForm(true);
   }, [isAdmin, isDragging, transform]);
 
@@ -145,6 +157,35 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
             draggable={false}
           />
           
+          {/* Alternative Routes */}
+          {filteredAlerts.map((alert) => {
+            if (!alert.alternativeRoutes) return null;
+            
+            try {
+              const routes: DrawnRoute[] = JSON.parse(alert.alternativeRoutes);
+              return routes.map((route) => (
+                <svg
+                  key={`${alert.id}-${route.id}`}
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ width: '100%', height: '100%' }}
+                >
+                  <polyline
+                    points={route.points.map(p => `${p.x},${p.y}`).join(' ')}
+                    stroke={route.color}
+                    strokeWidth="3"
+                    fill="none"
+                    strokeDasharray="8,4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ));
+            } catch (e) {
+              console.warn('Failed to parse alternative routes for alert:', alert.id);
+              return null;
+            }
+          })}
+
           {/* Alert Markers */}
           {filteredAlerts.map((alert) => (
             <AlertMarker

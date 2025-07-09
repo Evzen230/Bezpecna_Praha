@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Alert } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Plus, X, Edit, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import AlertFormModal from "./alert-form-modal";
 
 interface AdminPanelProps {
@@ -16,10 +18,49 @@ interface AdminPanelProps {
 export default function AdminPanel({ onClose }: AdminPanelProps) {
   const [showAlertForm, setShowAlertForm] = useState(false);
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: alerts = [], isLoading } = useQuery<Alert[]>({
     queryKey: ["/api/admin/alerts"],
   });
+
+  const deleteAlertMutation = useMutation({
+    mutationFn: async (alertId: number) => {
+      await apiRequest("DELETE", `/api/alerts/${alertId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/alerts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/alerts"] });
+      toast({
+        title: "Success",
+        description: "Alert deleted successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditAlert = (alert: Alert) => {
+    setEditingAlert(alert);
+    setShowAlertForm(true);
+  };
+
+  const handleDeleteAlert = (alertId: number) => {
+    if (confirm("Are you sure you want to delete this alert?")) {
+      deleteAlertMutation.mutate(alertId);
+    }
+  };
+
+  const handleFormClose = () => {
+    setShowAlertForm(false);
+    setEditingAlert(null);
+  };
 
   const severityColors = {
     critical: "bg-red-500",
@@ -88,11 +129,17 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
                           <Button 
                             variant="ghost" 
                             size="sm"
-                            onClick={() => setEditingAlert(alert)}
+                            onClick={() => handleEditAlert(alert)}
+                            disabled={deleteAlertMutation.isPending}
                           >
                             <Edit className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteAlert(alert.id)}
+                            disabled={deleteAlertMutation.isPending}
+                          >
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
@@ -124,12 +171,9 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
       {/* Alert Form Modal */}
       <AlertFormModal
         isOpen={showAlertForm}
-        onClose={() => setShowAlertForm(false)}
+        onClose={handleFormClose}
         editingAlert={editingAlert}
-        onAfterSubmit={() => {
-          setShowAlertForm(false);
-          setEditingAlert(null);
-        }}
+        onAfterSubmit={handleFormClose}
       />
     </>
   );

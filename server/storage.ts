@@ -68,6 +68,7 @@ export class DatabaseStorage implements IStorage {
           title: insertData.title,
           description: insertData.description,
           alternativeRoute: insertData.alternativeRoute,
+          alternativeRoutes: insertData.alternativeRoutes || null,
           category: insertData.category,
           severity: insertData.severity,
           xPosition: String(insertData.xPosition),

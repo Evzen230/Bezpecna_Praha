@@ -16,6 +16,7 @@ export const alerts = pgTable("alerts", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   alternativeRoute: text("alternative_route"), // for road closures
+  alternativeRoutes: text("alternative_routes"), // JSON array of drawn routes
   category: varchar("category", { length: 50 }).notNull(), // road, criminal
   severity: varchar("severity", { length: 20 }).notNull(), // critical, high, medium, low
   xPosition: decimal("x_position", { precision: 5, scale: 2 }).notNull(), // percentage
@@ -52,6 +53,7 @@ export const insertAlertSchema = createInsertSchema(alerts).omit({
   expirationHours: z.number().default(24), // helper field for UI
   xPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)),
   yPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)),
+  alternativeRoutes: z.string().optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

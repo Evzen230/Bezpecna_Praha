@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Save, X } from "lucide-react";
+import RouteDrawer from "./route-drawer";
 
 interface AlertFormModalProps {
   isOpen: boolean;
@@ -34,6 +36,9 @@ export default function AlertFormModal({
 }: AlertFormModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [alternativeRoutes, setAlternativeRoutes] = useState<any[]>(
+    editingAlert?.alternativeRoutes ? JSON.parse(editingAlert.alternativeRoutes) : []
+  );
 
   const form = useForm({
     resolver: zodResolver(extendedAlertSchema),
@@ -43,8 +48,8 @@ export default function AlertFormModal({
       alternativeRoute: editingAlert?.alternativeRoute || "",
       category: editingAlert?.category || "road",
       severity: editingAlert?.severity || "medium",
-      xPosition: editingAlert?.xPosition ? String(editingAlert.xPosition) : initialPosition?.x?.toFixed(1) || "",
-      yPosition: editingAlert?.yPosition ? String(editingAlert.yPosition) : initialPosition?.y?.toFixed(1) || "",
+      xPosition: editingAlert?.xPosition ? String(editingAlert.xPosition) : initialPosition?.x?.toFixed(2) || "50",
+      yPosition: editingAlert?.yPosition ? String(editingAlert.yPosition) : initialPosition?.y?.toFixed(2) || "50",
       expirationHours: 24,
     },
   });
@@ -104,6 +109,7 @@ export default function AlertFormModal({
       xPosition: parseFloat(data.xPosition),
       yPosition: parseFloat(data.yPosition),
       expirationHours: data.expirationHours || 24,
+      alternativeRoutes: alternativeRoutes.length > 0 ? JSON.stringify(alternativeRoutes) : null,
     };
     
     console.log('Processed alert data:', alertData);
@@ -222,6 +228,15 @@ export default function AlertFormModal({
                 </FormItem>
               )}
             />
+            
+            {/* Route Drawing Section */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Draw Alternative Routes on Map</label>
+              <RouteDrawer
+                onRoutesChange={setAlternativeRoutes}
+                initialRoutes={editingAlert?.alternativeRoutes ? JSON.parse(editingAlert.alternativeRoutes) : []}
+              />
+            </div>
             
             <div className="text-xs text-gray-500 p-2 bg-blue-50 rounded">
               Position will be automatically set from where you click on the map
