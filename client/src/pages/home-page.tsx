@@ -3,13 +3,15 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Settings, LogOut, Filter } from "lucide-react";
+import { Shield, Settings, LogOut, Filter, User } from "lucide-react";
+import { useLocation } from "wouter";
 import InteractiveMap from "@/components/map/interactive-map";
 import AdminPanel from "@/components/admin/admin-panel";
 import AlertStats from "@/components/alerts/alert-stats";
 
 export default function HomePage() {
   const { user, logoutMutation } = useAuth();
+  const [, setLocation] = useLocation();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [severityFilter, setSeverityFilter] = useState("all");
@@ -42,8 +44,6 @@ export default function HomePage() {
                     <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="road">Road Hazards</SelectItem>
                     <SelectItem value="criminal">Criminal Activity</SelectItem>
-                    <SelectItem value="emergency">Emergencies</SelectItem>
-                    <SelectItem value="weather">Weather</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -66,7 +66,7 @@ export default function HomePage() {
 
             {/* Admin Controls */}
             <div className="flex items-center space-x-3">
-              {user && (
+              {user ? (
                 <>
                   <Button
                     variant="secondary"
@@ -85,6 +85,15 @@ export default function HomePage() {
                     <LogOut className="h-4 w-4" />
                   </Button>
                 </>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => setLocation("/auth")}
+                  className="hidden sm:flex"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Admin Login
+                </Button>
               )}
             </div>
           </div>

@@ -22,6 +22,7 @@ interface AlertFormModalProps {
 
 const extendedAlertSchema = insertAlertSchema.extend({
   expirationHours: insertAlertSchema.shape.expirationHours.default(24),
+  alternativeRoute: insertAlertSchema.shape.alternativeRoute.optional(),
 });
 
 export default function AlertFormModal({ 
@@ -39,6 +40,7 @@ export default function AlertFormModal({
     defaultValues: {
       title: editingAlert?.title || "",
       description: editingAlert?.description || "",
+      alternativeRoute: editingAlert?.alternativeRoute || "",
       category: editingAlert?.category || "road",
       severity: editingAlert?.severity || "medium",
       xPosition: editingAlert?.xPosition ? String(editingAlert.xPosition) : initialPosition?.x?.toFixed(1) || "",
@@ -132,9 +134,6 @@ export default function AlertFormModal({
                     <SelectContent>
                       <SelectItem value="road">Road Hazards</SelectItem>
                       <SelectItem value="criminal">Criminal Activity</SelectItem>
-                      <SelectItem value="emergency">Medical Emergency</SelectItem>
-                      <SelectItem value="weather">Weather Alert</SelectItem>
-                      <SelectItem value="traffic">Traffic Update</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -198,45 +197,27 @@ export default function AlertFormModal({
               )}
             />
             
-            <div className="grid grid-cols-2 gap-2">
-              <FormField
-                control={form.control}
-                name="xPosition"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>X Position (%)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.1"
-                        placeholder="X Position"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="yPosition"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Y Position (%)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.1"
-                        placeholder="Y Position"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="alternativeRoute"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Alternative Route (for road closures)</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="e.g., Use Main St instead of Oak Ave, or take Highway 101 detour"
+                      rows={2}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="text-xs text-gray-500 p-2 bg-blue-50 rounded">
+              Position will be automatically set from where you click on the map
             </div>
-            <p className="text-xs text-gray-500">Click on the map to auto-fill coordinates</p>
             
             <FormField
               control={form.control}

@@ -58,6 +58,13 @@ export default function AlertDetailModal({ alert, isOpen, onClose }: AlertDetail
             <p className="text-sm text-gray-900 mt-1">{alert.description}</p>
           </div>
           
+          {alert.alternativeRoute && (
+            <div>
+              <span className="text-sm font-medium text-gray-700">Alternative Route:</span>
+              <p className="text-sm text-gray-900 mt-1">{alert.alternativeRoute}</p>
+            </div>
+          )}
+          
           <div>
             <span className="text-sm font-medium text-gray-700">Reported:</span>
             <span className="text-sm text-gray-900 ml-2">

@@ -1,6 +1,6 @@
 import { users, alerts, type User, type InsertUser, type Alert, type InsertAlert } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, gte } from "drizzle-orm";
+import { eq, desc, and, or, gte, isNull } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -19,11 +19,11 @@ export interface IStorage {
   deleteAlert(id: number): Promise<boolean>;
   getAlertsByUser(userId: number): Promise<Alert[]>;
   
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 
   constructor() {
     this.sessionStore = new PostgresSessionStore({ 
@@ -78,7 +78,7 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(alerts.isActive, true),
           or(
-            eq(alerts.expiresAt, null),
+            isNull(alerts.expiresAt),
             gte(alerts.expiresAt, now)
           )
         )
@@ -105,7 +105,7 @@ export class DatabaseStorage implements IStorage {
       .update(alerts)
       .set({ isActive: false })
       .where(eq(alerts.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async getAlertsByUser(userId: number): Promise<Alert[]> {

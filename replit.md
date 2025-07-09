@@ -2,7 +2,7 @@
 
 ## Overview
 
-CityAlert is a full-stack web application for managing and displaying real-time emergency alerts on an interactive map. The system allows administrators to create, update, and manage various types of alerts (road hazards, criminal activity, medical emergencies, weather, traffic) that are displayed to users on a visual map interface.
+CityAlert is a full-stack web application for managing and displaying real-time emergency alerts on an interactive map. The system allows administrators to create, update, and manage alerts for road hazards and criminal activity. The public can view alerts on an interactive map without requiring authentication, while only authenticated administrators can create and manage alerts.
 
 ## User Preferences
 
@@ -41,16 +41,20 @@ Preferred communication style: Simple, everyday language.
 
 ### Alert Management System
 - CRUD operations for emergency alerts
-- Alert categorization (road, criminal, emergency, weather, traffic)
+- Alert categorization (road hazards, criminal activity)
 - Severity levels (critical, high, medium, low)
 - Time-based alert expiration
 - Position-based alert placement on map coordinates
+- Alternative route suggestions for road closures
+- Click-to-create alerts with auto-filled coordinates
 
 ### Interactive Map Interface
+- Public access to view alerts without authentication
 - Click-to-create alerts for administrators
 - Visual alert markers with category-specific icons
 - Color-coded severity indicators
 - Real-time alert filtering by category and severity
+- Zoom and pan functionality for detailed map navigation
 - Responsive design for desktop and mobile
 
 ### Real-time Data Flow

@@ -18,9 +18,6 @@ interface AlertMarkerProps {
 const categoryIcons = {
   road: Construction,
   criminal: UserX,
-  emergency: Ambulance,
-  weather: Cloud,
-  traffic: Car,
 };
 
 const severityColors = {
@@ -33,8 +30,6 @@ const severityColors = {
 export default function AlertMarker({ alert, onClick }: AlertMarkerProps) {
   const Icon = categoryIcons[alert.category as keyof typeof categoryIcons] || AlertTriangle;
   const colorClass = severityColors[alert.severity as keyof typeof severityColors];
-  const shouldPulse = alert.severity === "critical";
-
   return (
     <div
       className="absolute transform -translate-x-1/2 -translate-y-full cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10"
@@ -49,7 +44,6 @@ export default function AlertMarker({ alert, onClick }: AlertMarkerProps) {
     >
       <div className={`
         ${colorClass} text-white px-3 py-2 rounded-lg shadow-lg border-2 border-white relative
-        ${shouldPulse ? 'animate-pulse' : ''}
       `}>
         <div className="flex items-center space-x-2">
           <Icon className="h-4 w-4" />

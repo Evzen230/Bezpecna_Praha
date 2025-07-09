@@ -15,7 +15,8 @@ export const alerts = pgTable("alerts", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  category: varchar("category", { length: 50 }).notNull(), // road, criminal, emergency, weather, traffic
+  alternativeRoute: text("alternative_route"), // for road closures
+  category: varchar("category", { length: 50 }).notNull(), // road, criminal
   severity: varchar("severity", { length: 20 }).notNull(), // critical, high, medium, low
   xPosition: decimal("x_position", { precision: 5, scale: 2 }).notNull(), // percentage
   yPosition: decimal("y_position", { precision: 5, scale: 2 }).notNull(), // percentage
