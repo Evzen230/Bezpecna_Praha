@@ -51,22 +51,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAlert(alertData: InsertAlert & { createdBy: number }): Promise<Alert> {
-    const { expirationHours, ...insertData } = alertData;
-    
-    let expiresAt: Date | null = null;
-    if (expirationHours && expirationHours > 0) {
-      expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + expirationHours);
-    }
+    try {
+      const { expirationHours, ...insertData } = alertData;
+      
+      let expiresAt: Date | null = null;
+      if (expirationHours && expirationHours > 0) {
+        expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + expirationHours);
+      }
 
-    const [alert] = await db
-      .insert(alerts)
-      .values({
-        ...insertData,
-        expiresAt,
-      })
-      .returning();
-    return alert;
+      console.log('Creating alert with data:', { ...insertData, expiresAt });
+
+      const [alert] = await db
+        .insert(alerts)
+        .values({
+          title: insertData.title,
+          description: insertData.description,
+          alternativeRoute: insertData.alternativeRoute,
+          category: insertData.category,
+          severity: insertData.severity,
+          xPosition: String(insertData.xPosition),
+          yPosition: String(insertData.yPosition),
+          createdBy: insertData.createdBy,
+          expiresAt,
+        })
+        .returning();
+      
+      console.log('Alert created successfully:', alert);
+      return alert;
+    } catch (error) {
+      console.error('Database error in createAlert:', error);
+      throw error;
+    }
   }
 
   async getActiveAlerts(): Promise<Alert[]> {

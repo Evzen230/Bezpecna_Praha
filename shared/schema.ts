@@ -47,8 +47,11 @@ export const insertAlertSchema = createInsertSchema(alerts).omit({
   createdBy: true,
   createdAt: true,
   isActive: true,
+  expiresAt: true,
 }).extend({
-  expirationHours: z.number().optional(), // helper field for UI
+  expirationHours: z.number().default(24), // helper field for UI
+  xPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)),
+  yPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

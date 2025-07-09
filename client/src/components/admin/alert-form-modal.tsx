@@ -97,11 +97,16 @@ export default function AlertFormModal({
   });
 
   const onSubmit = (data: any) => {
+    console.log('Form submitted with data:', data);
+    
     const alertData = {
       ...data,
       xPosition: parseFloat(data.xPosition),
       yPosition: parseFloat(data.yPosition),
+      expirationHours: data.expirationHours || 24,
     };
+    
+    console.log('Processed alert data:', alertData);
 
     if (editingAlert) {
       updateAlertMutation.mutate(alertData);
