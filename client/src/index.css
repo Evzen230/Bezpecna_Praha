@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+  
+  /* Emergency alert colors */
+  --alert-critical: hsl(0, 85%, 60%);
+  --alert-warning: hsl(24, 95%, 63%);
+  --alert-caution: hsl(45, 95%, 63%);
+  --alert-safe: hsl(122, 47%, 55%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+  
+  /* Emergency alert colors for dark mode */
+  --alert-critical: hsl(0, 85%, 60%);
+  --alert-warning: hsl(24, 95%, 63%);
+  --alert-caution: hsl(45, 95%, 63%);
+  --alert-safe: hsl(122, 47%, 55%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .alert-pulse {
+    animation: alert-pulse 2s infinite;
+  }
+  
+  .admin-panel {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+  }
+  
+  .modal-backdrop {
+    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+@keyframes alert-pulse {
+  0%, 100% { 
+    opacity: 1; 
+  }
+  50% { 
+    opacity: 0.7; 
+  }
+}
+
+/* Map cursor styles */
+.map-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.alert-marker {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.alert-marker:hover {
+  transform: translate(-50%, -100%) scale(1.1);
+  z-index: 10;
+}
+
+/* Emergency alert color utilities */
+.bg-alert-critical {
+  background-color: var(--alert-critical);
+}
+
+.bg-alert-warning {
+  background-color: var(--alert-warning);
+}
+
+.bg-alert-caution {
+  background-color: var(--alert-caution);
+}
+
+.bg-alert-safe {
+  background-color: var(--alert-safe);
+}
