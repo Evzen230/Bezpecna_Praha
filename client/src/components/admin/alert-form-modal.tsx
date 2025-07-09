@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { insertAlertSchema, InsertAlert, Alert } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -115,6 +115,9 @@ export default function AlertFormModal({
       <DialogContent className="max-w-lg max-h-screen overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editingAlert ? "Edit Alert" : "Add New Alert"}</DialogTitle>
+          <DialogDescription>
+            {editingAlert ? "Modify the alert details below" : "Create a new emergency alert by filling out the form below"}
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>

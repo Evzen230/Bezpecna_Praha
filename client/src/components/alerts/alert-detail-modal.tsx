@@ -1,5 +1,5 @@
 import { Alert } from "@shared/schema";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin } from "lucide-react";
@@ -38,6 +38,9 @@ export default function AlertDetailModal({ alert, isOpen, onClose }: AlertDetail
             <span className={`inline-block w-3 h-3 ${severityColor} rounded-full`} />
             <DialogTitle className="text-lg">{alert.title}</DialogTitle>
           </div>
+          <DialogDescription>
+            View detailed information about this emergency alert
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">
