@@ -24,21 +24,3 @@ export const db = drizzle({ client: pool, schema });
 pool.on('error', (err) => {
   console.error('Unexpected database pool error:', err);
 });
-
-export const alerts = pgTable("alerts", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  category: text("category").notNull(),
-  severity: text("severity").notNull(),
-  xPosition: real("x_position").notNull(),
-  yPosition: real("y_position").notNull(),
-  alternativeRoute: text("alternative_route"),
-  alternativeRoutes: text("alternative_routes"),
-  icon: text("icon"),
-  isActive: boolean("is_active").default(true),
-  expiresAt: timestamp("expires_at"),
-  updatedAt: timestamp("updated_at").defaultNow(),
-  createdAt: timestamp("created_at").defaultNow(),
-  createdBy: integer("created_by").references(() => users.id),
-});

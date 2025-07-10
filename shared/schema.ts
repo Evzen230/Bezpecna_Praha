@@ -54,13 +54,11 @@ export const insertAlertSchema = createInsertSchema(alerts).omit({
   description: z.string().min(1, "Description is required"),
   category: z.enum(["road", "criminal"]),
   severity: z.enum(["low", "medium", "high", "critical"]),
-  xPosition: z.number().min(0).max(100),
-  yPosition: z.number().min(0).max(100),
+  xPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)).refine((val) => val >= 0 && val <= 100, "Position must be between 0 and 100"),
+  yPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)).refine((val) => val >= 0 && val <= 100, "Position must be between 0 and 100"),
   icon: z.string().optional(),
   expirationHours: z.number().default(24), // helper field for UI
   alternativeRoutes: z.string().optional(),
-  xPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)),
-  yPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
