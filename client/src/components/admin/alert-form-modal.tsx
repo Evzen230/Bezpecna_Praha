@@ -49,8 +49,8 @@ export default function AlertFormModal({
       description: editingAlert?.description || "",
       category: editingAlert?.category || "road",
       severity: editingAlert?.severity || "medium",
-      xPosition: editingAlert?.xPosition || initialPosition?.x || 50,
-      yPosition: editingAlert?.yPosition || initialPosition?.y || 50,
+      xPosition: editingAlert?.xPosition ?? initialPosition?.x ?? 50,
+      yPosition: editingAlert?.yPosition ?? initialPosition?.y ?? 50,
       alternativeRoute: editingAlert?.alternativeRoute || "",
       icon: editingAlert?.icon || "",
       expirationHours: 24,
@@ -109,6 +109,8 @@ export default function AlertFormModal({
 
     const alertData = {
         ...data,
+        xPosition: data.xPosition ?? initialPosition?.x ?? 50,
+        yPosition: data.yPosition ?? initialPosition?.y ?? 50,
         alternativeRoutes: JSON.stringify(alternativeRoutes),
         icon: data.icon || null,
         expiresAt: data.expirationHours > 0 ? 
