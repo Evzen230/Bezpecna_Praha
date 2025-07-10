@@ -7,13 +7,44 @@ import {
   Car,
   Construction,
   Shield,
-  Zap
+  Zap,
+  Fire,
+  Wrench,
+  Ban,
+  AlertCircle,
+  HelpCircle,
+  Info,
+  MapPin,
+  Phone,
+  Users,
+  TreePine
 } from "lucide-react";
 
 interface AlertMarkerProps {
   alert: Alert;
   onClick: () => void;
 }
+
+export const availableIcons = {
+  "alert-triangle": AlertTriangle,
+  "construction": Construction,
+  "user-x": UserX,
+  "ambulance": Ambulance,
+  "car": Car,
+  "shield": Shield,
+  "fire": Fire,
+  "wrench": Wrench,
+  "ban": Ban,
+  "alert-circle": AlertCircle,
+  "help-circle": HelpCircle,
+  "info": Info,
+  "map-pin": MapPin,
+  "phone": Phone,
+  "users": Users,
+  "tree-pine": TreePine,
+  "zap": Zap,
+  "cloud": Cloud,
+};
 
 const categoryIcons = {
   road: Construction,
@@ -28,7 +59,9 @@ const severityColors = {
 };
 
 export default function AlertMarker({ alert, onClick }: AlertMarkerProps) {
-  const Icon = categoryIcons[alert.category as keyof typeof categoryIcons] || AlertTriangle;
+  // Use custom icon if specified, otherwise fall back to category default
+  const customIcon = alert.icon ? availableIcons[alert.icon as keyof typeof availableIcons] : null;
+  const Icon = customIcon || categoryIcons[alert.category as keyof typeof categoryIcons] || AlertTriangle;
   const colorClass = severityColors[alert.severity as keyof typeof severityColors];
   return (
     <div

@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { insertAlertSchema, InsertAlert, Alert } from "@shared/schema";
+import { insertAlertSchema, Alert } from "@shared/schema";
+import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Save, X } from "lucide-react";
 import RouteDrawer from "./route-drawer";
+import { availableIcons } from "@/components/alerts/alert-marker";
 
 interface AlertFormModalProps {
   isOpen: boolean;
@@ -40,16 +42,17 @@ export default function AlertFormModal({
     editingAlert?.alternativeRoutes ? JSON.parse(editingAlert.alternativeRoutes) : []
   );
 
-  const form = useForm({
-    resolver: zodResolver(extendedAlertSchema),
+  const form = useForm<z.infer<typeof insertAlertSchema>>({
+    resolver: zodResolver(insertAlertSchema),
     defaultValues: {
       title: editingAlert?.title || "",
       description: editingAlert?.description || "",
-      alternativeRoute: editingAlert?.alternativeRoute || "",
       category: editingAlert?.category || "road",
       severity: editingAlert?.severity || "medium",
-      xPosition: editingAlert?.xPosition ? String(editingAlert.xPosition) : initialPosition?.x?.toFixed(2) || "50",
-      yPosition: editingAlert?.yPosition ? String(editingAlert.yPosition) : initialPosition?.y?.toFixed(2) || "50",
+      xPosition: editingAlert?.xPosition || initialPosition?.x || 50,
+      yPosition: editingAlert?.yPosition || initialPosition?.y || 50,
+      alternativeRoute: editingAlert?.alternativeRoute || "",
+      icon: editingAlert?.icon || "",
       expirationHours: 24,
     },
   });
@@ -103,15 +106,16 @@ export default function AlertFormModal({
 
   const onSubmit = (data: any) => {
     console.log('Form submitted with data:', data);
-    
+
     const alertData = {
-      ...data,
-      xPosition: parseFloat(data.xPosition),
-      yPosition: parseFloat(data.yPosition),
-      expirationHours: data.expirationHours || 24,
-      alternativeRoutes: alternativeRoutes.length > 0 ? JSON.stringify(alternativeRoutes) : null,
-    };
-    
+        ...data,
+        alternativeRoutes: JSON.stringify(alternativeRoutes),
+        icon: data.icon || null,
+        expiresAt: data.expirationHours > 0 ? 
+          new Date(Date.now() + data.expirationHours * 60 * 60 * 1000).toISOString() : 
+          null
+      };
+
     console.log('Processed alert data:', alertData);
 
     if (editingAlert) {
@@ -130,7 +134,7 @@ export default function AlertFormModal({
             {editingAlert ? "Modify the alert details below" : "Create a new emergency alert by filling out the form below"}
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -154,13 +158,13 @@ export default function AlertFormModal({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="severity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Severity Level</FormLabel>
+                  <FormLabel>Severity</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -168,17 +172,45 @@ export default function AlertFormModal({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="critical">Critical</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
+            <FormField
+              control={form.control}
+              name="icon"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Icon</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose an icon" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.entries(availableIcons).map(([key, IconComponent]) => (
+                        <SelectItem key={key} value={key}>
+                          <div className="flex items-center space-x-2">
+                            <IconComponent className="h-4 w-4" />
+                            <span className="capitalize">{key.replace('-', ' ')}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="title"
@@ -192,7 +224,7 @@ export default function AlertFormModal({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="description"
@@ -210,7 +242,7 @@ export default function AlertFormModal({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="alternativeRoute"
@@ -228,7 +260,7 @@ export default function AlertFormModal({
                 </FormItem>
               )}
             />
-            
+
             {/* Route Drawing Section */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Draw Alternative Routes on Map</label>
@@ -237,11 +269,11 @@ export default function AlertFormModal({
                 initialRoutes={editingAlert?.alternativeRoutes ? JSON.parse(editingAlert.alternativeRoutes) : []}
               />
             </div>
-            
+
             <div className="text-xs text-gray-500 p-2 bg-blue-50 rounded">
               Position will be automatically set from where you click on the map
             </div>
-            
+
             <FormField
               control={form.control}
               name="expirationHours"
@@ -266,7 +298,7 @@ export default function AlertFormModal({
                 </FormItem>
               )}
             />
-            
+
             <div className="flex space-x-3 pt-4">
               <Button 
                 type="submit" 

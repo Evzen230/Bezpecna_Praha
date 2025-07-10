@@ -59,27 +59,25 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
   }, [isAdmin, isDragging, transform]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!isAdmin) return;
     setIsDragging(true);
     setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
-  }, [isAdmin, transform]);
+  }, [transform]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging || !isAdmin) return;
+    if (!isDragging) return;
     
     setTransform(prev => ({
       ...prev,
       x: e.clientX - dragStart.x,
       y: e.clientY - dragStart.y
     }));
-  }, [isDragging, isAdmin, dragStart]);
+  }, [isDragging, dragStart]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
   }, []);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (!isAdmin) return;
     e.preventDefault();
     
     const rect = mapRef.current?.getBoundingClientRect();
@@ -97,7 +95,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
       y: mouseY - (mouseY - prev.y) * (newScale / prev.scale),
       scale: newScale
     }));
-  }, [isAdmin, transform]);
+  }, [transform]);
 
   useEffect(() => {
     const handleGlobalMouseUp = () => setIsDragging(false);
@@ -136,7 +134,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
         style={{ 
-          cursor: isAdmin ? (isDragging ? 'grabbing' : 'grab') : 'default',
+          cursor: isDragging ? 'grabbing' : 'grab',
           userSelect: 'none'
         }}
       >
@@ -167,16 +165,24 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
                 <svg
                   key={`${alert.id}-${route.id}`}
                   className="absolute inset-0 pointer-events-none"
-                  style={{ width: '100%', height: '100%' }}
+                  style={{ 
+                    width: '100%', 
+                    height: '100%',
+                    top: 0,
+                    left: 0
+                  }}
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
                 >
                   <polyline
                     points={route.points.map(p => `${p.x},${p.y}`).join(' ')}
                     stroke={route.color}
-                    strokeWidth="3"
+                    strokeWidth="0.5"
                     fill="none"
-                    strokeDasharray="8,4"
+                    strokeDasharray="2,1"
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    vectorEffect="non-scaling-stroke"
                   />
                 </svg>
               ));

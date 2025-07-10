@@ -50,10 +50,17 @@ export const insertAlertSchema = createInsertSchema(alerts).omit({
   isActive: true,
   expiresAt: true,
 }).extend({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  category: z.enum(["road", "criminal"]),
+  severity: z.enum(["low", "medium", "high", "critical"]),
+  xPosition: z.number().min(0).max(100),
+  yPosition: z.number().min(0).max(100),
+  icon: z.string().optional(),
   expirationHours: z.number().default(24), // helper field for UI
+  alternativeRoutes: z.string().optional(),
   xPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)),
   yPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)),
-  alternativeRoutes: z.string().optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
