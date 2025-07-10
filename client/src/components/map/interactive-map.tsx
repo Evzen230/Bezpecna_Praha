@@ -11,6 +11,7 @@ import mapImageUrl from "@assets/Snímek obrazovky 2025-07-09 202523_17520884167
 declare global {
   interface Window {
     setRouteColor?: (color: string) => void;
+    currentRouteColor?: string;
   }
 }
 
@@ -55,7 +56,10 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
   });
 
   const handleMapClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isAdmin || isDragging) return;
+    if (!isAdmin) return;
+    
+    // Don't process clicks during dragging
+    if (isDragging) return;
 
     const rect = mapRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -67,6 +71,8 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
     // Ensure positions are within bounds
     const clampedX = Math.max(0, Math.min(100, x));
     const clampedY = Math.max(0, Math.min(100, y));
+
+    console.log('Map clicked - isRouteDrawing:', isRouteDrawing, 'position:', { x: clampedX, y: clampedY });
 
     if (isRouteDrawing) {
       console.log('Route drawing - adding point:', { x: clampedX, y: clampedY });
@@ -85,19 +91,22 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
   }, [isAdmin, isDragging, transform, isRouteDrawing]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Don't start dragging if we're in route drawing mode
+    if (isRouteDrawing) return;
+    
     setIsDragging(true);
     setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
-  }, [transform]);
+  }, [transform, isRouteDrawing]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging) return;
+    if (!isDragging || isRouteDrawing) return;
     
     setTransform(prev => ({
       ...prev,
       x: e.clientX - dragStart.x,
       y: e.clientY - dragStart.y
     }));
-  }, [isDragging, dragStart]);
+  }, [isDragging, dragStart, isRouteDrawing]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -186,10 +195,12 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
   // Expose route color setter to window for sidebar access
   useEffect(() => {
     window.setRouteColor = setCurrentRouteColor;
+    window.currentRouteColor = currentRouteColor;
     return () => {
       delete window.setRouteColor;
+      delete window.currentRouteColor;
     };
-  }, []);
+  }, [currentRouteColor]);
 
   if (isLoading) {
     return (

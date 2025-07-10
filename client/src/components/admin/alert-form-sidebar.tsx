@@ -321,12 +321,17 @@ export default function AlertFormSidebar({
                             <button
                               key={color}
                               type="button"
-                              className="w-6 h-6 rounded-full border-2 border-gray-300 hover:border-gray-500"
-                              style={{ backgroundColor: color }}
+                              className="w-6 h-6 rounded-full border-2 border-gray-300 hover:border-gray-500 hover:scale-110 transition-all"
+                              style={{ 
+                                backgroundColor: color,
+                                borderColor: window.currentRouteColor === color ? '#374151' : '#d1d5db'
+                              }}
                               onClick={() => {
+                                console.log('Color selected:', color);
                                 // This will be handled by the parent component
                                 if (window.setRouteColor) {
                                   window.setRouteColor(color);
+                                  window.currentRouteColor = color;
                                 }
                               }}
                               title={`Select ${color}`}
