@@ -18,7 +18,6 @@ import {
   Phone,
   Users,
   TreePine,
-  CarCrash,
   ShieldCheck,
   Crosshair
 } from "lucide-react";
@@ -47,7 +46,7 @@ export const availableIcons = {
   "tree-pine": TreePine,
   "zap": Zap,
   "cloud": Cloud,
-  "car-crash": CarCrash,
+  "car-crash": Car,
   "police": ShieldCheck,
   "gun": Crosshair,
 };
