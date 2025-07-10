@@ -17,7 +17,10 @@ import {
   MapPin,
   Phone,
   Users,
-  TreePine
+  TreePine,
+  CarCrash,
+  ShieldCheck,
+  Crosshair
 } from "lucide-react";
 
 interface AlertMarkerProps {
@@ -44,6 +47,9 @@ export const availableIcons = {
   "tree-pine": TreePine,
   "zap": Zap,
   "cloud": Cloud,
+  "car-crash": CarCrash,
+  "police": ShieldCheck,
+  "gun": Crosshair,
 };
 
 const categoryIcons = {
@@ -65,10 +71,11 @@ export default function AlertMarker({ alert, onClick }: AlertMarkerProps) {
   const colorClass = severityColors[alert.severity as keyof typeof severityColors];
   return (
     <div
-      className="absolute transform -translate-x-1/2 -translate-y-full cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10"
+      className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10"
       style={{
         top: `${alert.yPosition}%`,
         left: `${alert.xPosition}%`,
+        zIndex: 10,
       }}
       onClick={(e) => {
         e.stopPropagation();

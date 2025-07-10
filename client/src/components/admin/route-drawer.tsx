@@ -117,60 +117,43 @@ export default function RouteDrawer({ onRoutesChange, initialRoutes = [] }: Rout
 
         {/* Render completed routes */}
         <svg
-          className="absolute inset-0 pointer-events-none w-full h-full"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-        >
-          {routes.map((route) => (
-            <g key={route.id}>
+            className="absolute inset-0 pointer-events-none"
+            style={{ 
+              width: '100%', 
+              height: '100%',
+              top: 0,
+              left: 0,
+              zIndex: 5
+            }}
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+          >
+            {routes.map((route) => (
               <polyline
+                key={route.id}
                 points={route.points.map(p => `${p.x},${p.y}`).join(' ')}
                 stroke={route.color}
                 strokeWidth="1"
                 fill="none"
+                strokeDasharray="4,2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                vectorEffect="non-scaling-stroke"
+                opacity="0.8"
               />
-              {route.points.map((point, index) => (
-                <circle
-                  key={index}
-                  cx={point.x}
-                  cy={point.y}
-                  r="1"
-                  fill={route.color}
-                  vectorEffect="non-scaling-stroke"
-                />
-              ))}
-            </g>
-          ))}
-
-          {/* Render current route being drawn */}
-          {currentRoute && (
-            <g>
+            ))}
+            {currentRoute.length > 0 && (
               <polyline
-                points={currentRoute.points.map(p => `${p.x},${p.y}`).join(' ')}
-                stroke={currentRoute.color}
+                points={currentRoute.map(p => `${p.x},${p.y}`).join(' ')}
+                stroke={selectedColor}
                 strokeWidth="1"
                 fill="none"
-                strokeDasharray="2,1"
+                strokeDasharray="4,2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                vectorEffect="non-scaling-stroke"
+                opacity="0.9"
               />
-              {currentRoute.points.map((point, index) => (
-                <circle
-                  key={index}
-                  cx={point.x}
-                  cy={point.y}
-                  r="1"
-                  fill={currentRoute.color}
-                  vectorEffect="non-scaling-stroke"
-                />
-              ))}
-            </g>
-          )}
-        </svg>
+            )}
+          </svg>
       </div>
 
       {/* Route List */}

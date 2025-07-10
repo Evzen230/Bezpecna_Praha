@@ -23,6 +23,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [showAlertForm, setShowAlertForm] = useState(false);
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
+  const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const [isDragging, setIsDragging] = useState(false);
@@ -45,7 +46,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
     const rect = mapRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    // Calculate position relative to the transformed map
+    // Calculate position relative to the original map coordinates (before transform)
     const x = ((e.clientX - rect.left - transform.x) / transform.scale / rect.width) * 100;
     const y = ((e.clientY - rect.top - transform.y) / transform.scale / rect.height) * 100;
 
@@ -115,6 +116,11 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
     setSelectedAlert(alert);
   };
 
+  const handleEditAlert = (alert: Alert) => {
+    setEditingAlert(alert);
+    setShowAlertForm(true);
+  };
+
   if (isLoading) {
     return (
       <div className="h-screen bg-gray-900 flex items-center justify-center">
@@ -134,7 +140,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
         style={{ 
-          cursor: isDragging ? 'grabbing' : 'grab',
+          cursor: isDragging ? 'grabbing' : (isAdmin ? 'grab' : 'default'),
           userSelect: 'none'
         }}
       >
@@ -155,42 +161,42 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
             draggable={false}
           />
           
-          {/* Alternative Routes */}
-          {filteredAlerts.map((alert) => {
-            if (!alert.alternativeRoutes) return null;
-            
-            try {
-              const routes: DrawnRoute[] = JSON.parse(alert.alternativeRoutes);
-              return routes.map((route) => (
-                <svg
-                  key={`${alert.id}-${route.id}`}
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ 
-                    width: '100%', 
-                    height: '100%',
-                    top: 0,
-                    left: 0
-                  }}
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                >
+          {/* Alternative Routes - painted on the actual map */}
+          <svg
+            className="absolute inset-0 pointer-events-none"
+            style={{ 
+              width: '100%', 
+              height: '100%',
+              top: 0,
+              left: 0
+            }}
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+          >
+            {filteredAlerts.map((alert) => {
+              if (!alert.alternativeRoutes) return null;
+              
+              try {
+                const routes: DrawnRoute[] = JSON.parse(alert.alternativeRoutes);
+                return routes.map((route) => (
                   <polyline
+                    key={`${alert.id}-${route.id}`}
                     points={route.points.map(p => `${p.x},${p.y}`).join(' ')}
                     stroke={route.color}
-                    strokeWidth="0.5"
+                    strokeWidth="1"
                     fill="none"
-                    strokeDasharray="2,1"
+                    strokeDasharray="4,2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    vectorEffect="non-scaling-stroke"
+                    opacity="0.8"
                   />
-                </svg>
-              ));
-            } catch (e) {
-              console.warn('Failed to parse alternative routes for alert:', alert.id);
-              return null;
-            }
-          })}
+                ));
+              } catch (e) {
+                console.warn('Failed to parse alternative routes for alert:', alert.id);
+                return null;
+              }
+            })}
+          </svg>
 
           {/* Alert Markers */}
           {filteredAlerts.map((alert) => (
@@ -209,6 +215,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
           alert={selectedAlert}
           isOpen={!!selectedAlert}
           onClose={() => setSelectedAlert(null)}
+          onEdit={isAdmin ? handleEditAlert : undefined}
         />
       )}
 
@@ -219,8 +226,15 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
           onClose={() => {
             setShowAlertForm(false);
             setPendingPosition(null);
+            setEditingAlert(null);
           }}
           initialPosition={pendingPosition}
+          editingAlert={editingAlert}
+          onAfterSubmit={() => {
+            setShowAlertForm(false);
+            setPendingPosition(null);
+            setEditingAlert(null);
+          }}
         />
       )}
     </>
