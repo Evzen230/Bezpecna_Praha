@@ -141,10 +141,10 @@ export default function RouteDrawer({ onRoutesChange, initialRoutes = [] }: Rout
                 opacity="0.8"
               />
             ))}
-            {currentRoute.length > 0 && (
+            {currentRoute && currentRoute.points.length > 0 && (
               <polyline
-                points={currentRoute.map(p => `${p.x},${p.y}`).join(' ')}
-                stroke={selectedColor}
+                points={currentRoute.points.map(p => `${p.x},${p.y}`).join(' ')}
+                stroke={currentRoute.color}
                 strokeWidth="1"
                 fill="none"
                 strokeDasharray="4,2"
