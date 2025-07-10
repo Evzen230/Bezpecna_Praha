@@ -179,7 +179,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
           <img 
             src={mapImageUrl} 
             alt="City Map" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             draggable={false}
           />
           

@@ -1,0 +1,61 @@
+[debug] [2025-07-10T08:50:48.734Z] ----------------------------------------------------------------------
+[debug] [2025-07-10T08:50:48.737Z] Command:       /nix/store/rbdrkcs5kkwpalxcd7c6bnm33lk2955n-nodejs-20.19.0/bin/node /nix/store/fprgfkwna33crhc86jqbf5878piivvgw-firebase-tools-14.7.0/lib/node_modules/firebase-tools/lib/bin/firebase.js init hosting
+[debug] [2025-07-10T08:50:48.737Z] CLI Version:   14.7.0
+[debug] [2025-07-10T08:50:48.738Z] Platform:      linux
+[debug] [2025-07-10T08:50:48.738Z] Node Version:  v20.19.0
+[debug] [2025-07-10T08:50:48.738Z] Time:          Thu Jul 10 2025 08:50:48 GMT+0000 (Coordinated Universal Time)
+[debug] [2025-07-10T08:50:48.738Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-07-10T08:50:48.742Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2025-07-10T08:50:48.801Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-07-10T08:50:49.239Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2025-07-10T08:50:49.242Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2025-07-10T08:50:57.060Z] ----------------------------------------------------------------------
+[debug] [2025-07-10T08:50:57.062Z] Command:       /nix/store/rbdrkcs5kkwpalxcd7c6bnm33lk2955n-nodejs-20.19.0/bin/node /nix/store/fprgfkwna33crhc86jqbf5878piivvgw-firebase-tools-14.7.0/lib/node_modules/firebase-tools/lib/bin/firebase.js login --no-localhost
+[debug] [2025-07-10T08:50:57.063Z] CLI Version:   14.7.0
+[debug] [2025-07-10T08:50:57.063Z] Platform:      linux
+[debug] [2025-07-10T08:50:57.063Z] Node Version:  v20.19.0
+[debug] [2025-07-10T08:50:57.064Z] Time:          Thu Jul 10 2025 08:50:57 GMT+0000 (Coordinated Universal Time)
+[debug] [2025-07-10T08:50:57.064Z] ----------------------------------------------------------------------
+[debug] 
+[info] i  Firebase CLI integrates with Gemini in Firebase API to provide assistant features. Learn more about using Gemini in Firebase and how we train our models: https://firebase.google.com/docs/gemini-in-firebase/set-up-gemini#required-permissions 
+[debug] [2025-07-10T08:51:37.835Z] Running auto auth
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /home/user/Bezpecna_Praha
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[info] 
+[info] i  Firebase optionally collects CLI and Emulator Suite usage and error reporting information to help improve our products. Data is collected in accordance with Google's privacy policy (https://policies.google.com/privacy) and is not used to identify you. 
+[info] 
+[info] i  To change your the preference at any time, run `firebase logout` and `firebase login` again. 
+[debug] [2025-07-10T08:51:58.488Z] >>> [apiv2][query] POST https://auth.firebase.tools/attest [none]
+[debug] [2025-07-10T08:51:58.488Z] >>> [apiv2][body] POST https://auth.firebase.tools/attest {"session_id":"a81f7402-a6bf-45cc-91ce-411f962df739"}
+[debug] [2025-07-10T08:51:59.059Z] <<< [apiv2][status] POST https://auth.firebase.tools/attest 200
+[debug] [2025-07-10T08:51:59.060Z] <<< [apiv2][body] POST https://auth.firebase.tools/attest {"token":"Zu9BiNqkFz7bzrgKZhCr3VP0TLHPlXaFlOCVu5w3lbA"}
+[info] 
+[info] To sign in to the Firebase CLI:
+[info] 
+[info] 1. Take note of your session ID:
+[info] 
+[info]    A81F7
+[info] 
+[info] 2. Visit the URL below on any device and follow the instructions to get your code:
+[info] 
+[info]    https://auth.firebase.tools/login?code_challenge=MZOw0I0NCD1H6iZqOmRgfEAUk8cQJQNzb27gg0hbRGU&session=a81f7402-a6bf-45cc-91ce-411f962df739&attest=Zu9BiNqkFz7bzrgKZhCr3VP0TLHPlXaFlOCVu5w3lbA
+[info] 
+[info] 3. Paste or enter the authorization code below once you have it:
+[info] 
