@@ -25,6 +25,7 @@ import {
 interface AlertMarkerProps {
   alert: Alert;
   onClick: () => void;
+  scale?: number;
 }
 
 export const availableIcons = {
@@ -63,11 +64,17 @@ const severityColors = {
   low: "bg-green-500 border-green-600",
 };
 
-export default function AlertMarker({ alert, onClick }: AlertMarkerProps) {
+export default function AlertMarker({ alert, onClick, scale = 1 }: AlertMarkerProps) {
   // Use custom icon if specified, otherwise fall back to category default
   const customIcon = alert.icon ? availableIcons[alert.icon as keyof typeof availableIcons] : null;
   const Icon = customIcon || categoryIcons[alert.category as keyof typeof categoryIcons] || AlertTriangle;
   const colorClass = severityColors[alert.severity as keyof typeof severityColors];
+  
+  // Calculate responsive size based on zoom level
+  const markerScale = Math.max(0.5, Math.min(2, 1 / scale));
+  const iconSize = Math.max(12, Math.min(24, 16 * markerScale));
+  const fontSize = Math.max(10, Math.min(16, 14 * markerScale));
+  const padding = Math.max(8, Math.min(16, 12 * markerScale));
   return (
     <div
       className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10"
@@ -75,18 +82,25 @@ export default function AlertMarker({ alert, onClick }: AlertMarkerProps) {
         top: `${alert.yPosition}%`,
         left: `${alert.xPosition}%`,
         zIndex: 10,
+        transform: `translate(-50%, -50%) scale(${markerScale})`,
       }}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
     >
-      <div className={`
-        ${colorClass} text-white px-3 py-2 rounded-lg shadow-lg border-2 border-white relative
-      `}>
+      <div 
+        className={`${colorClass} text-white rounded-lg shadow-lg border-2 border-white relative`}
+        style={{
+          padding: `${padding}px`,
+        }}
+      >
         <div className="flex items-center space-x-2">
-          <Icon className="h-4 w-4" />
-          <span className="font-semibold text-sm whitespace-nowrap">
+          <Icon style={{ width: `${iconSize}px`, height: `${iconSize}px` }} />
+          <span 
+            className="font-semibold whitespace-nowrap"
+            style={{ fontSize: `${fontSize}px` }}
+          >
             {alert.title}
           </span>
         </div>

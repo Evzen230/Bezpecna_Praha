@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Alert } from "@shared/schema";
 import AlertMarker from "@/components/alerts/alert-marker";
 import AlertDetailModal from "@/components/alerts/alert-detail-modal";
-import AlertFormModal from "@/components/admin/alert-form-modal";
+import AlertFormSidebar from "@/components/admin/alert-form-sidebar";
 import { Button } from "@/components/ui/button";
 import mapImageUrl from "@assets/Snímek obrazovky 2025-07-09 202523_1752088416796.jpg";
 
@@ -33,6 +33,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
 
   const { data: alerts = [], isLoading } = useQuery<Alert[]>({
     queryKey: ["/api/alerts"],
+    refetchInterval: 5000, // Auto-refresh every 5 seconds for real-time updates
   });
 
   const filteredAlerts = alerts.filter(alert => {
@@ -226,6 +227,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
               key={alert.id}
               alert={alert}
               onClick={() => handleAlertClick(alert)}
+              scale={transform.scale}
             />
           ))}
         </div>
@@ -241,9 +243,9 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
         />
       )}
 
-      {/* Alert Form Modal */}
+      {/* Alert Form Sidebar */}
       {isAdmin && (
-        <AlertFormModal
+        <AlertFormSidebar
           isOpen={showAlertForm}
           onClose={() => {
             setShowAlertForm(false);
