@@ -7,6 +7,13 @@ import AlertFormSidebar from "@/components/admin/alert-form-sidebar";
 import { Button } from "@/components/ui/button";
 import mapImageUrl from "@assets/Snímek obrazovky 2025-07-09 202523_1752088416796.jpg";
 
+// Type declaration for window extension
+declare global {
+  interface Window {
+    setRouteColor?: (color: string) => void;
+  }
+}
+
 interface DrawnRoute {
   id: string;
   points: { x: number; y: number }[];
@@ -33,8 +40,8 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
   const [isRouteDrawing, setIsRouteDrawing] = useState(false);
   const [currentRoute, setCurrentRoute] = useState<{ x: number; y: number }[]>([]);
   const [drawnRoutes, setDrawnRoutes] = useState<DrawnRoute[]>([]);
-  const [routeColors] = useState(['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd']);
-  const [currentColorIndex, setCurrentColorIndex] = useState(0);
+  const [routeColors] = useState(['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#ff9ff3', '#54a0ff']);
+  const [currentRouteColor, setCurrentRouteColor] = useState('#ff6b6b');
 
   const { data: alerts = [], isLoading } = useQuery<Alert[]>({
     queryKey: ["/api/alerts"],
@@ -147,14 +154,17 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
     const newRoute: DrawnRoute = {
       id: Date.now().toString(),
       points: [...currentRoute],
-      color: routeColors[currentColorIndex],
+      color: currentRouteColor,
       name: `Route ${drawnRoutes.length + 1}`
     };
     
     setDrawnRoutes(prev => [...prev, newRoute]);
     setCurrentRoute([]);
-    setCurrentColorIndex(prev => (prev + 1) % routeColors.length);
-  }, [isRouteDrawing, currentRoute, routeColors, currentColorIndex, drawnRoutes.length]);
+    
+    // Auto-select next color
+    const nextColorIndex = (routeColors.indexOf(currentRouteColor) + 1) % routeColors.length;
+    setCurrentRouteColor(routeColors[nextColorIndex]);
+  }, [isRouteDrawing, currentRoute, currentRouteColor, drawnRoutes.length, routeColors]);
 
   const handleRouteDrawingChange = useCallback((isDrawing: boolean) => {
     setIsRouteDrawing(isDrawing);
@@ -165,6 +175,14 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
 
   const handleRoutesChange = useCallback((routes: DrawnRoute[]) => {
     setDrawnRoutes(routes);
+  }, []);
+
+  // Expose route color setter to window for sidebar access
+  useEffect(() => {
+    window.setRouteColor = setCurrentRouteColor;
+    return () => {
+      delete window.setRouteColor;
+    };
   }, []);
 
   if (isLoading) {
@@ -281,7 +299,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
             {isRouteDrawing && currentRoute.length > 0 && (
               <polyline
                 points={currentRoute.map(p => `${p.x},${p.y}`).join(' ')}
-                stroke={routeColors[currentColorIndex]}
+                stroke={currentRouteColor}
                 strokeWidth="2"
                 fill="none"
                 strokeLinecap="round"
@@ -297,7 +315,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
                 cx={point.x}
                 cy={point.y}
                 r="0.5"
-                fill={routeColors[currentColorIndex]}
+                fill={currentRouteColor}
                 opacity="0.8"
               />
             ))}
@@ -344,7 +362,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
             setEditingAlert(null);
             setIsRouteDrawing(false);
             setCurrentRoute([]);
-            setDrawnRoutes([]);
+            // Don't clear drawn routes here, let them persist for the form
           }}
           onRouteDrawingChange={handleRouteDrawingChange}
           onRoutesChange={handleRoutesChange}
@@ -354,8 +372,17 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
       {/* Route Drawing Instructions */}
       {isRouteDrawing && (
         <div className="absolute bottom-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-20">
-          <div className="text-sm font-medium">Drawing Route Mode</div>
+          <div className="text-sm font-medium flex items-center gap-2">
+            <div 
+              className="w-3 h-3 rounded-full border border-white" 
+              style={{ backgroundColor: currentRouteColor }}
+            />
+            Drawing Route Mode
+          </div>
           <div className="text-xs opacity-90">Click to add points • Double-click to finish</div>
+          {currentRoute.length > 0 && (
+            <div className="text-xs opacity-75">{currentRoute.length} points added</div>
+          )}
         </div>
       )}
     </>

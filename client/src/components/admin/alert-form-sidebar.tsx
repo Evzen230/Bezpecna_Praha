@@ -136,9 +136,8 @@ export default function AlertFormSidebar({
 
   // Pass current drawn routes to form submission
   useEffect(() => {
-    if (alternativeRoutes.length > 0) {
-      form.setValue('alternativeRoutes', JSON.stringify(alternativeRoutes));
-    }
+    const routesString = JSON.stringify(alternativeRoutes);
+    form.setValue('alternativeRoutes', routesString);
   }, [alternativeRoutes, form]);
 
   useEffect(() => {
@@ -296,7 +295,7 @@ export default function AlertFormSidebar({
                   )}
                 />
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <FormLabel>Alternative Routes</FormLabel>
                     <Button
@@ -308,15 +307,68 @@ export default function AlertFormSidebar({
                       {showRouteDrawer ? "Stop Drawing" : "Draw Routes"}
                     </Button>
                   </div>
+                  
+                  {showRouteDrawer && (
+                    <div className="space-y-2">
+                      <div className="text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                        Click on the map to draw alternative routes. Double-click to finish a route.
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Route Color:</label>
+                        <div className="flex gap-2 flex-wrap">
+                          {['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#ff9ff3', '#54a0ff'].map((color) => (
+                            <button
+                              key={color}
+                              type="button"
+                              className="w-6 h-6 rounded-full border-2 border-gray-300 hover:border-gray-500"
+                              style={{ backgroundColor: color }}
+                              onClick={() => {
+                                // This will be handled by the parent component
+                                if (window.setRouteColor) {
+                                  window.setRouteColor(color);
+                                }
+                              }}
+                              title={`Select ${color}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     {alternativeRoutes.length > 0 
                       ? `${alternativeRoutes.length} route(s) drawn`
                       : "No routes drawn yet"
                     }
                   </div>
-                  {showRouteDrawer && (
-                    <div className="text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
-                      Click on the map to draw alternative routes. Double-click to finish a route.
+                  
+                  {alternativeRoutes.length > 0 && (
+                    <div className="space-y-1">
+                      {alternativeRoutes.map((route, index) => (
+                        <div key={route.id} className="flex items-center justify-between text-xs bg-gray-50 dark:bg-gray-800 p-2 rounded">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: route.color }}
+                            />
+                            <span>{route.name}</span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-5 w-5 p-0 text-red-500 hover:text-red-700"
+                            onClick={() => {
+                              const newRoutes = alternativeRoutes.filter((_, i) => i !== index);
+                              handleRoutesChange(newRoutes);
+                            }}
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
