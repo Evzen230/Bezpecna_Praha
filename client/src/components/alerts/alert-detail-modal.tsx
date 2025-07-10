@@ -42,16 +42,15 @@ export default function AlertDetailModal({ alert, isOpen, onClose, onEdit }: Ale
 
   const deleteAlertMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/alerts/${alert.id}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/alerts/${alert.id}`);
     },
     onSuccess: () => {
       toast({
         title: "Success!",
-        description: "Alert deleted successfully.",
+        description: "Alert and associated routes deleted successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["alerts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/alerts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/alerts"] });
       onClose();
     },
     onError: (error) => {

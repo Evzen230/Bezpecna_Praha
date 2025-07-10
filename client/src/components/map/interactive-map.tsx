@@ -4,6 +4,7 @@ import { Alert } from "@shared/schema";
 import AlertMarker from "@/components/alerts/alert-marker";
 import AlertDetailModal from "@/components/alerts/alert-detail-modal";
 import AlertFormModal from "@/components/admin/alert-form-modal";
+import { Button } from "@/components/ui/button";
 import mapImageUrl from "@assets/Snímek obrazovky 2025-07-09 202523_1752088416796.jpg";
 
 interface DrawnRoute {
@@ -25,7 +26,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
-  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 0.8 }); // Start with slightly zoomed out view
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [lastTouch, setLastTouch] = useState<{ x: number; y: number; distance: number } | null>(null);
@@ -85,7 +86,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
     if (!rect) return;
 
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const newScale = Math.min(Math.max(transform.scale * delta, 0.5), 3);
+    const newScale = Math.min(Math.max(transform.scale * delta, 0.3), 3); // Allow more zoom out
     
     // Calculate zoom center
     const mouseX = e.clientX - rect.left;
@@ -97,6 +98,10 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
       scale: newScale
     }));
   }, [transform]);
+
+  const resetView = useCallback(() => {
+    setTransform({ x: 0, y: 0, scale: 0.8 });
+  }, []);
 
   useEffect(() => {
     const handleGlobalMouseUp = () => setIsDragging(false);
@@ -131,6 +136,23 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
 
   return (
     <>
+      {/* Map Controls */}
+      <div className="absolute top-4 right-4 z-10 flex flex-col space-y-2">
+        <Button
+          onClick={resetView}
+          variant="secondary"
+          size="sm"
+          className="bg-white/90 hover:bg-white shadow-md"
+        >
+          Reset View
+        </Button>
+        {isAdmin && (
+          <div className="text-xs text-white bg-black/70 px-2 py-1 rounded">
+            Click to add alert
+          </div>
+        )}
+      </div>
+
       <div 
         ref={mapRef}
         className="h-screen bg-gray-900 relative overflow-hidden"
