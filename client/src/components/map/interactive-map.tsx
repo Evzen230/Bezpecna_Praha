@@ -69,8 +69,13 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
     const clampedY = Math.max(0, Math.min(100, y));
 
     if (isRouteDrawing) {
+      console.log('Route drawing - adding point:', { x: clampedX, y: clampedY });
       // Add point to current route
-      setCurrentRoute(prev => [...prev, { x: clampedX, y: clampedY }]);
+      setCurrentRoute(prev => {
+        const newRoute = [...prev, { x: clampedX, y: clampedY }];
+        console.log('Current route now has points:', newRoute.length);
+        return newRoute;
+      });
       return;
     }
 
@@ -167,6 +172,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
   }, [isRouteDrawing, currentRoute, currentRouteColor, drawnRoutes.length, routeColors]);
 
   const handleRouteDrawingChange = useCallback((isDrawing: boolean) => {
+    console.log('Route drawing changed:', isDrawing);
     setIsRouteDrawing(isDrawing);
     if (!isDrawing) {
       setCurrentRoute([]);
@@ -224,6 +230,12 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
         style={{ 
           cursor: isDragging ? 'grabbing' : isRouteDrawing ? 'crosshair' : (isAdmin ? 'grab' : 'default'),
           userSelect: 'none'
+        }}
+        onContextMenu={(e) => {
+          // Prevent context menu when route drawing to avoid interference
+          if (isRouteDrawing) {
+            e.preventDefault();
+          }
         }}
       >
         {/* Base Map Image */}
@@ -308,15 +320,17 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
               />
             )}
             
-            {/* Route points */}
+            {/* Route points - make them more visible */}
             {isRouteDrawing && currentRoute.map((point, index) => (
               <circle
                 key={index}
                 cx={point.x}
                 cy={point.y}
-                r="0.5"
+                r="0.8"
                 fill={currentRouteColor}
-                opacity="0.8"
+                stroke="white"
+                strokeWidth="0.2"
+                opacity="0.9"
               />
             ))}
           </svg>

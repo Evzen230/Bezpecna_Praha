@@ -70,11 +70,11 @@ export default function AlertMarker({ alert, onClick, scale = 1 }: AlertMarkerPr
   const Icon = customIcon || categoryIcons[alert.category as keyof typeof categoryIcons] || AlertTriangle;
   const colorClass = severityColors[alert.severity as keyof typeof severityColors];
   
-  // Calculate responsive size based on zoom level
-  const markerScale = Math.max(0.5, Math.min(2, 1 / scale));
-  const iconSize = Math.max(12, Math.min(24, 16 * markerScale));
-  const fontSize = Math.max(10, Math.min(16, 14 * markerScale));
-  const padding = Math.max(8, Math.min(16, 12 * markerScale));
+  // Calculate responsive size based on zoom level with strict limits
+  const markerScale = Math.max(0.3, Math.min(1.2, 1 / scale));
+  const iconSize = Math.max(10, Math.min(18, 16 * markerScale));
+  const fontSize = Math.max(8, Math.min(11, 12 * markerScale));
+  const padding = Math.max(6, Math.min(10, 8 * markerScale));
   return (
     <div
       className="absolute cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10"
