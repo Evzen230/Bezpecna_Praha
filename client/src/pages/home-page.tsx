@@ -7,12 +7,14 @@ import { Shield, Settings, LogOut, Filter, User } from "lucide-react";
 import { useLocation } from "wouter";
 import InteractiveMap from "@/components/map/interactive-map";
 import AdminPanel from "@/components/admin/admin-panel";
+import GameInfrastructurePanel from "@/components/admin/game-infrastructure-panel";
 import AlertStats from "@/components/alerts/alert-stats";
 
 export default function HomePage() {
   const { user, logoutMutation } = useAuth();
   const [, setLocation] = useLocation();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showGameInfrastructure, setShowGameInfrastructure] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [severityFilter, setSeverityFilter] = useState("all");
 
@@ -77,6 +79,13 @@ export default function HomePage() {
                     Admin Panel
                   </Button>
                   <Button
+                    variant="outline"
+                    onClick={() => setShowGameInfrastructure(true)}
+                    className="hidden sm:flex"
+                  >
+                    Game Map
+                  </Button>
+                  <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleLogout}
@@ -114,6 +123,11 @@ export default function HomePage() {
         {/* Admin Panel */}
         {user && showAdminPanel && (
           <AdminPanel onClose={() => setShowAdminPanel(false)} />
+        )}
+
+        {/* Game Infrastructure Panel */}
+        {user && showGameInfrastructure && (
+          <GameInfrastructurePanel onClose={() => setShowGameInfrastructure(false)} />
         )}
         
         {/* Mobile Filter Button */}

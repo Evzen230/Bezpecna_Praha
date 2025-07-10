@@ -411,14 +411,20 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
         </div>
       )}
 
-      {/* Map-like Grid Lines */}
-      <div className="absolute inset-0 pointer-events-none opacity-20 z-0" style={{
+      {/* Game Map Coordinate Grid */}
+      <div className="absolute inset-0 pointer-events-none opacity-15 z-0" style={{
         backgroundImage: `
-          linear-gradient(to right, rgba(100,100,100,0.3) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(100,100,100,0.3) 1px, transparent 1px)
+          linear-gradient(to right, rgba(100,150,200,0.4) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(100,150,200,0.4) 1px, transparent 1px)
         `,
-        backgroundSize: '40px 40px'
+        backgroundSize: '50px 50px'
       }}></div>
+
+      {/* Coordinate Display */}
+      <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg text-sm font-mono z-10">
+        Game Map Coordinates
+        <div className="text-xs opacity-75">Scale: {(transform.scale * 100).toFixed(0)}%</div>
+      </div>
     </>
   );
 }
