@@ -30,6 +30,11 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [lastTouch, setLastTouch] = useState<{ x: number; y: number; distance: number } | null>(null);
+  const [isRouteDrawing, setIsRouteDrawing] = useState(false);
+  const [currentRoute, setCurrentRoute] = useState<{ x: number; y: number }[]>([]);
+  const [drawnRoutes, setDrawnRoutes] = useState<DrawnRoute[]>([]);
+  const [routeColors] = useState(['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd']);
+  const [currentColorIndex, setCurrentColorIndex] = useState(0);
 
   const { data: alerts = [], isLoading } = useQuery<Alert[]>({
     queryKey: ["/api/alerts"],
@@ -56,10 +61,16 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
     const clampedX = Math.max(0, Math.min(100, x));
     const clampedY = Math.max(0, Math.min(100, y));
 
+    if (isRouteDrawing) {
+      // Add point to current route
+      setCurrentRoute(prev => [...prev, { x: clampedX, y: clampedY }]);
+      return;
+    }
+
     console.log('Map clicked at:', { x: clampedX, y: clampedY });
     setPendingPosition({ x: clampedX, y: clampedY });
     setShowAlertForm(true);
-  }, [isAdmin, isDragging, transform]);
+  }, [isAdmin, isDragging, transform, isRouteDrawing]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
@@ -127,6 +138,35 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
     setShowAlertForm(true);
   };
 
+  const handleMapDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isRouteDrawing || currentRoute.length < 2) return;
+    
+    e.preventDefault();
+    
+    // Finish current route
+    const newRoute: DrawnRoute = {
+      id: Date.now().toString(),
+      points: [...currentRoute],
+      color: routeColors[currentColorIndex],
+      name: `Route ${drawnRoutes.length + 1}`
+    };
+    
+    setDrawnRoutes(prev => [...prev, newRoute]);
+    setCurrentRoute([]);
+    setCurrentColorIndex(prev => (prev + 1) % routeColors.length);
+  }, [isRouteDrawing, currentRoute, routeColors, currentColorIndex, drawnRoutes.length]);
+
+  const handleRouteDrawingChange = useCallback((isDrawing: boolean) => {
+    setIsRouteDrawing(isDrawing);
+    if (!isDrawing) {
+      setCurrentRoute([]);
+    }
+  }, []);
+
+  const handleRoutesChange = useCallback((routes: DrawnRoute[]) => {
+    setDrawnRoutes(routes);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="h-screen bg-gray-900 flex items-center justify-center">
@@ -158,12 +198,13 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
         ref={mapRef}
         className="h-screen bg-gray-900 relative overflow-hidden"
         onClick={handleMapClick}
+        onDoubleClick={handleMapDoubleClick}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
         style={{ 
-          cursor: isDragging ? 'grabbing' : (isAdmin ? 'grab' : 'default'),
+          cursor: isDragging ? 'grabbing' : isRouteDrawing ? 'crosshair' : (isAdmin ? 'grab' : 'default'),
           userSelect: 'none'
         }}
       >
@@ -196,6 +237,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
             viewBox="0 0 100 100"
             preserveAspectRatio="none"
           >
+            {/* Existing alert routes */}
             {filteredAlerts.map((alert) => {
               if (!alert.alternativeRoutes) return null;
               
@@ -219,6 +261,46 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
                 return null;
               }
             })}
+            
+            {/* Currently drawn routes */}
+            {drawnRoutes.map((route) => (
+              <polyline
+                key={route.id}
+                points={route.points.map(p => `${p.x},${p.y}`).join(' ')}
+                stroke={route.color}
+                strokeWidth="2"
+                fill="none"
+                strokeDasharray="6,3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity="0.9"
+              />
+            ))}
+            
+            {/* Current route being drawn */}
+            {isRouteDrawing && currentRoute.length > 0 && (
+              <polyline
+                points={currentRoute.map(p => `${p.x},${p.y}`).join(' ')}
+                stroke={routeColors[currentColorIndex]}
+                strokeWidth="2"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity="0.7"
+              />
+            )}
+            
+            {/* Route points */}
+            {isRouteDrawing && currentRoute.map((point, index) => (
+              <circle
+                key={index}
+                cx={point.x}
+                cy={point.y}
+                r="0.5"
+                fill={routeColors[currentColorIndex]}
+                opacity="0.8"
+              />
+            ))}
           </svg>
 
           {/* Alert Markers */}
@@ -251,6 +333,8 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
             setShowAlertForm(false);
             setPendingPosition(null);
             setEditingAlert(null);
+            setIsRouteDrawing(false);
+            setCurrentRoute([]);
           }}
           initialPosition={pendingPosition}
           editingAlert={editingAlert}
@@ -258,8 +342,21 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
             setShowAlertForm(false);
             setPendingPosition(null);
             setEditingAlert(null);
+            setIsRouteDrawing(false);
+            setCurrentRoute([]);
+            setDrawnRoutes([]);
           }}
+          onRouteDrawingChange={handleRouteDrawingChange}
+          onRoutesChange={handleRoutesChange}
         />
+      )}
+
+      {/* Route Drawing Instructions */}
+      {isRouteDrawing && (
+        <div className="absolute bottom-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-20">
+          <div className="text-sm font-medium">Drawing Route Mode</div>
+          <div className="text-xs opacity-90">Click to add points • Double-click to finish</div>
+        </div>
       )}
     </>
   );

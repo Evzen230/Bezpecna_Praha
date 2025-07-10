@@ -77,12 +77,13 @@ export default function AlertMarker({ alert, onClick, scale = 1 }: AlertMarkerPr
   const padding = Math.max(8, Math.min(16, 12 * markerScale));
   return (
     <div
-      className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10"
+      className="absolute cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10"
       style={{
         top: `${alert.yPosition}%`,
         left: `${alert.xPosition}%`,
         zIndex: 10,
         transform: `translate(-50%, -50%) scale(${markerScale})`,
+        transformOrigin: 'center center',
       }}
       onClick={(e) => {
         e.stopPropagation();

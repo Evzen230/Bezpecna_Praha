@@ -21,6 +21,8 @@ interface AlertFormSidebarProps {
   initialPosition?: { x: number; y: number } | null;
   editingAlert?: Alert | null;
   onAfterSubmit?: () => void;
+  onRouteDrawingChange?: (isDrawing: boolean) => void;
+  onRoutesChange?: (routes: any[]) => void;
 }
 
 const extendedAlertSchema = insertAlertSchema.extend({
@@ -33,7 +35,9 @@ export default function AlertFormSidebar({
   onClose, 
   initialPosition, 
   editingAlert,
-  onAfterSubmit 
+  onAfterSubmit,
+  onRouteDrawingChange,
+  onRoutesChange
 }: AlertFormSidebarProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -127,7 +131,19 @@ export default function AlertFormSidebar({
 
   const handleRoutesChange = (routes: any[]) => {
     setAlternativeRoutes(routes);
+    onRoutesChange?.(routes);
   };
+
+  // Pass current drawn routes to form submission
+  useEffect(() => {
+    if (alternativeRoutes.length > 0) {
+      form.setValue('alternativeRoutes', JSON.stringify(alternativeRoutes));
+    }
+  }, [alternativeRoutes, form]);
+
+  useEffect(() => {
+    onRouteDrawingChange?.(showRouteDrawer);
+  }, [showRouteDrawer, onRouteDrawingChange]);
 
   if (!isOpen) return null;
 
@@ -287,9 +303,9 @@ export default function AlertFormSidebar({
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => setShowRouteDrawer(true)}
+                      onClick={() => setShowRouteDrawer(!showRouteDrawer)}
                     >
-                      Draw Routes
+                      {showRouteDrawer ? "Stop Drawing" : "Draw Routes"}
                     </Button>
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -298,6 +314,11 @@ export default function AlertFormSidebar({
                       : "No routes drawn yet"
                     }
                   </div>
+                  {showRouteDrawer && (
+                    <div className="text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                      Click on the map to draw alternative routes. Double-click to finish a route.
+                    </div>
+                  )}
                 </div>
 
                 <FormField
@@ -383,32 +404,7 @@ export default function AlertFormSidebar({
         </div>
       </div>
 
-      {/* Route Drawer Modal */}
-      {showRouteDrawer && (
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Draw Alternative Routes</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowRouteDrawer(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <RouteDrawer
-              onRoutesChange={handleRoutesChange}
-              initialRoutes={alternativeRoutes}
-            />
-            <div className="flex justify-end mt-4">
-              <Button onClick={() => setShowRouteDrawer(false)}>
-                Done
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Backdrop */}
       <div 
