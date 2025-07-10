@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -56,6 +56,14 @@ export default function AlertFormModal({
       expirationHours: 24,
     },
   });
+
+  // Update form values when initialPosition changes
+  useEffect(() => {
+    if (initialPosition && !editingAlert) {
+      form.setValue('xPosition', initialPosition.x);
+      form.setValue('yPosition', initialPosition.y);
+    }
+  }, [initialPosition, editingAlert, form]);
 
   const createAlertMutation = useMutation({
     mutationFn: async (data: InsertAlert) => {
