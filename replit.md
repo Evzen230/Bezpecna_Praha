@@ -8,6 +8,16 @@ CityAlert is a full-stack web application for managing and displaying real-time 
 
 Preferred communication style: Simple, everyday language.
 
+## Project Vision
+User envisions a Google Maps-like system where admins can manage city infrastructure:
+- Add/remove streets and roads
+- Create new map points and infrastructure  
+- Manage road closures with precise control
+- Provide navigation-like route suggestions
+- Full administrative control over city's digital representation
+
+Current decision: Keep manageable scope while incorporating map-like features for better usability and accuracy.
+
 ## System Architecture
 
 ### Frontend Architecture

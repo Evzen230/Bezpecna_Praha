@@ -402,14 +402,23 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
               className="w-3 h-3 rounded-full border border-white" 
               style={{ backgroundColor: currentRouteColor }}
             />
-            Drawing Route Mode
+            Drawing Alternative Route
           </div>
-          <div className="text-xs opacity-90">Click to add points • Double-click to finish</div>
+          <div className="text-xs opacity-90">Click to add waypoints • Double-click to finish</div>
           {currentRoute.length > 0 && (
-            <div className="text-xs opacity-75">{currentRoute.length} points added</div>
+            <div className="text-xs opacity-75">{currentRoute.length} waypoints added</div>
           )}
         </div>
       )}
+
+      {/* Map-like Grid Lines */}
+      <div className="absolute inset-0 pointer-events-none opacity-20 z-0" style={{
+        backgroundImage: `
+          linear-gradient(to right, rgba(100,100,100,0.3) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(100,100,100,0.3) 1px, transparent 1px)
+        `,
+        backgroundSize: '40px 40px'
+      }}></div>
     </>
   );
 }
