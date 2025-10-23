@@ -24,10 +24,10 @@ interface AlertFormSidebarProps {
   onRoutesChange?: (routes: any[]) => void;
 }
 
-export default function AlertFormSidebar({ 
-  isOpen, 
-  onClose, 
-  initialPosition, 
+export default function AlertFormSidebar({
+  isOpen,
+  onClose,
+  initialPosition,
   editingAlert,
   onAfterSubmit,
   onRouteDrawingChange,
@@ -45,9 +45,11 @@ export default function AlertFormSidebar({
       description: editingAlert?.description || "",
       category: (editingAlert?.category as "road" | "criminal") || "road",
       severity: (editingAlert?.severity as "low" | "medium" | "high" | "critical") || "medium",
-      xPosition: editingAlert ? editingAlert.xPosition : (initialPosition?.x ?? 50),
-      yPosition: editingAlert ? editingAlert.yPosition : (initialPosition?.y ?? 50),
-      alternativeRoute: editingAlert?.alternativeRoute || "",
+      xPosition: editingAlert?.xPosition ?? initialPosition?.x ?? 50,
+      yPosition: editingAlert?.yPosition ?? initialPosition?.y ?? 50,
+      icon: editingAlert?.icon || "construction",
+      alternativeRoutes: "",
+      expirationMinutes: editingAlert?.expirationMinutes || 60,
       isActive: editingAlert?.isActive ?? true,
     },
   });
@@ -110,7 +112,7 @@ export default function AlertFormSidebar({
   const onSubmit = (data: z.infer<typeof insertAlertSchema>) => {
     const submitData: any = {
       ...data,
-      expiresAt: expirationMinutes > 0 
+      expiresAt: expirationMinutes > 0
         ? new Date(Date.now() + expirationMinutes * 60000)
         : null,
     };
@@ -343,7 +345,7 @@ export default function AlertFormSidebar({
 
 
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/30 z-40"
         onClick={onClose}
       />
