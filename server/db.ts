@@ -10,9 +10,8 @@ if (!process.env.DATABASE_URL) {
 export async function connectDB() {
   try {
     await mongoose.connect(process.env.DATABASE_URL, {
-      tls: true,
-      tlsAllowInvalidCertificates: false,
-      tlsAllowInvalidHostnames: false,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     });
     console.log('MongoDB connected successfully');
   } catch (error) {
