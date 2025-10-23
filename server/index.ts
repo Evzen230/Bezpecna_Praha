@@ -2,8 +2,12 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { connectToDatabase } from "./db";
 
 const app = express();
+
+// Connect to MongoDB
+await connectToDatabase();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
