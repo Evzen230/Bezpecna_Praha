@@ -27,8 +27,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <Shield className="text-primary text-2xl" />
-              <h1 className="text-xl font-bold text-gray-900">CityAlert</h1>
+              <h1 className="text-xl font-bold text-gray-900">Bezpečná Praha</h1>
               <Badge variant="default" className="bg-primary text-white">ŽIVĚ</Badge>
             </div>
             

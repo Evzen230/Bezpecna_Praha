@@ -64,13 +64,13 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
 
   const severityColors = {
     critical: "bg-red-500",
-    high: "bg-orange-500", 
+    high: "bg-orange-500",
     medium: "bg-yellow-500",
-    low: "bg-green-500"
+    low: "bg-green-500",
   };
 
-  const activeAlerts = alerts.filter(alert => alert.isActive);
-  const todayAlerts = alerts.filter(alert => {
+  const activeAlerts = alerts.filter((alert) => alert.isActive);
+  const todayAlerts = alerts.filter((alert) => {
     const today = new Date();
     const alertDate = new Date(alert.createdAt);
     return alertDate.toDateString() === today.toDateString();
@@ -87,55 +87,58 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
             </Button>
           </div>
         </CardHeader>
-        
+
         <CardContent className="p-4 space-y-4">
           {/* Add Alert Button */}
-          <Button 
-            className="w-full" 
-            onClick={() => setShowAlertForm(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Přidat nové upozornění
-          </Button>
-          
+
           {/* Active Alerts Management */}
           <div>
-            <h4 className="font-medium text-gray-900 mb-2">Spravovat aktivní upozornění</h4>
+            <h4 className="font-medium text-gray-900 mb-2">
+              Spravovat aktivní upozornění
+            </h4>
             <ScrollArea className="h-64">
               <div className="space-y-2">
                 {isLoading ? (
-                  <div className="text-center text-gray-500 py-4">Načítání...</div>
+                  <div className="text-center text-gray-500 py-4">
+                    Načítání...
+                  </div>
                 ) : activeAlerts.length === 0 ? (
-                  <div className="text-center text-gray-500 py-4">Žádná aktivní upozornění</div>
+                  <div className="text-center text-gray-500 py-4">
+                    Žádná aktivní upozornění
+                  </div>
                 ) : (
                   activeAlerts.map((alert) => (
                     <div key={alert.id} className="bg-gray-50 p-3 rounded-md">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-1">
-                            <span 
-                              className={`inline-block w-2 h-2 rounded-full ${severityColors[alert.severity as keyof typeof severityColors]}`} 
+                            <span
+                              className={`inline-block w-2 h-2 rounded-full ${severityColors[alert.severity as keyof typeof severityColors]}`}
                             />
                             <span className="text-sm font-medium text-gray-900">
                               {alert.title}
                             </span>
                           </div>
-                          <p className="text-xs text-gray-600">{alert.description}</p>
+                          <p className="text-xs text-gray-600">
+                            {alert.description}
+                          </p>
                           <p className="text-xs text-gray-500 mt-1">
-                            {formatDistanceToNow(new Date(alert.createdAt), { addSuffix: true })}
+                            {formatDistanceToNow(new Date(alert.createdAt), {
+                              addSuffix: true,
+                            })}
                           </p>
                         </div>
                         <div className="flex space-x-1 ml-2">
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={() => handleEditAlert(alert)}
                             disabled={deleteAlertMutation.isPending}
                           >
                             <Edit className="h-3 w-3" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={() => handleDeleteAlert(alert.id)}
                             disabled={deleteAlertMutation.isPending}
@@ -150,17 +153,23 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
               </div>
             </ScrollArea>
           </div>
-          
+
           {/* Quick Stats */}
           <div className="border-t border-gray-200 pt-4">
-            <h4 className="font-medium text-gray-900 mb-2">Rychlé statistiky</h4>
+            <h4 className="font-medium text-gray-900 mb-2">
+              Rychlé statistiky
+            </h4>
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-gray-50 p-2 rounded text-center">
-                <div className="font-semibold text-gray-900">{activeAlerts.length}</div>
+                <div className="font-semibold text-gray-900">
+                  {activeAlerts.length}
+                </div>
                 <div className="text-xs text-gray-600">Celkem aktivních</div>
               </div>
               <div className="bg-gray-50 p-2 rounded text-center">
-                <div className="font-semibold text-gray-900">{todayAlerts.length}</div>
+                <div className="font-semibold text-gray-900">
+                  {todayAlerts.length}
+                </div>
                 <div className="text-xs text-gray-600">Dnes</div>
               </div>
             </div>
