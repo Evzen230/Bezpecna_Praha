@@ -1,24 +1,23 @@
 import { users, alerts, type User, type InsertUser, type Alert, type InsertAlert } from "@shared/schema";
-import { db } from "./db";
-import { eq, desc, and, or, gte, isNull } from "drizzle-orm";
 import session from "express-session";
-import connectPg from "connect-pg-simple";
-import { pool } from "./db";
+import MongoStore from "connect-mongo";
 
-const PostgresSessionStore = connectPg(session);
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL must be set");
+}
 
 export interface IStorage {
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUser(id: string): Promise<User | null>;
+  getUserByUsername(username: string): Promise<User | null>;
   createUser(user: InsertUser): Promise<User>;
-  
-  createAlert(alert: InsertAlert & { createdBy: number }): Promise<Alert>;
+
+  createAlert(alert: InsertAlert & { createdBy: string }): Promise<Alert>;
   getActiveAlerts(): Promise<Alert[]>;
-  getAlert(id: number): Promise<Alert | undefined>;
-  updateAlert(id: number, updates: Partial<Alert>): Promise<Alert | undefined>;
-  deleteAlert(id: number): Promise<boolean>;
-  getAlertsByUser(userId: number): Promise<Alert[]>;
-  
+  getAlert(id: string): Promise<Alert | null>;
+  updateAlert(id: string, updates: Partial<Alert>): Promise<Alert | null>;
+  deleteAlert(id: string): Promise<boolean>;
+  getAlertsByUser(userId: string): Promise<Alert[]>;
+
   sessionStore: session.Store;
 }
 
@@ -26,111 +25,68 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({ 
-      pool, 
-      createTableIfMissing: true 
+    this.sessionStore = MongoStore.create({ 
+      mongoUrl: process.env.DATABASE_URL,
+      touchAfter: 24 * 3600,
     });
   }
 
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+  async getUser(id: string): Promise<User | null> {
+    return await users.findById(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
+  async getUserByUsername(username: string): Promise<User | null> {
+    return await users.findOne({ username });
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
-    return user;
+    const user = new users(insertUser);
+    return await user.save();
   }
 
-  async createAlert(alertData: InsertAlert & { createdBy: number }): Promise<Alert> {
-    try {
-      const { expirationMinutes, ...insertData } = alertData;
-      
-      let expiresAt: Date | null = null;
-      if (expirationMinutes && expirationMinutes > 0) {
-        expiresAt = new Date();
-        expiresAt.setMinutes(expiresAt.getMinutes() + expirationMinutes);
-      }
-
-      console.log('Creating alert with data:', { ...insertData, expiresAt });
-
-      const [alert] = await db
-        .insert(alerts)
-        .values({
-          title: insertData.title,
-          description: insertData.description,
-          alternativeRoute: insertData.alternativeRoute,
-          alternativeRoutes: insertData.alternativeRoutes || null,
-          category: insertData.category,
-          severity: insertData.severity,
-          xPosition: String(insertData.xPosition),
-          yPosition: String(insertData.yPosition),
-          createdBy: insertData.createdBy,
-          expiresAt,
-        })
-        .returning();
-      
-      console.log('Alert created successfully:', alert);
-      return alert;
-    } catch (error) {
-      console.error('Database error in createAlert:', error);
-      throw error;
-    }
+  async createAlert(insertAlert: InsertAlert & { createdBy: string }): Promise<Alert> {
+    const alert = new alerts(insertAlert);
+    return await alert.save();
   }
 
   async getActiveAlerts(): Promise<Alert[]> {
     const now = new Date();
-    return await db
-      .select()
-      .from(alerts)
-      .where(
-        and(
-          eq(alerts.isActive, true),
-          or(
-            isNull(alerts.expiresAt),
-            gte(alerts.expiresAt, now)
-          )
-        )
-      )
-      .orderBy(desc(alerts.createdAt));
+    return await alerts
+      .find({
+        isActive: true,
+        $or: [
+          { expiresAt: null },
+          { expiresAt: { $gte: now } }
+        ]
+      })
+      .sort({ createdAt: -1 });
   }
 
-  async getAlert(id: number): Promise<Alert | undefined> {
-    const [alert] = await db.select().from(alerts).where(eq(alerts.id, id));
-    return alert || undefined;
+  async getAlert(id: string): Promise<Alert | null> {
+    return await alerts.findById(id);
   }
 
-  async updateAlert(id: number, updates: Partial<Alert>): Promise<Alert | undefined> {
-    const [alert] = await db
-      .update(alerts)
-      .set(updates)
-      .where(eq(alerts.id, id))
-      .returning();
-    return alert || undefined;
+  async updateAlert(id: string, updates: Partial<Alert>): Promise<Alert | null> {
+    return await alerts.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true }
+    );
   }
 
-  async deleteAlert(id: number): Promise<boolean> {
-    const result = await db
-      .update(alerts)
-      .set({ isActive: false })
-      .where(eq(alerts.id, id));
-    return (result.rowCount || 0) > 0;
+  async deleteAlert(id: string): Promise<boolean> {
+    const result = await alerts.findByIdAndUpdate(
+      id,
+      { $set: { isActive: false } },
+      { new: true }
+    );
+    return result !== null;
   }
 
-  async getAlertsByUser(userId: number): Promise<Alert[]> {
-    return await db
-      .select()
-      .from(alerts)
-      .where(eq(alerts.createdBy, userId))
-      .orderBy(desc(alerts.createdAt));
+  async getAlertsByUser(userId: string): Promise<Alert[]> {
+    return await alerts
+      .find({ createdBy: userId })
+      .sort({ createdAt: -1 });
   }
 }
 

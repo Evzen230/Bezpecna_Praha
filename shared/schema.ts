@@ -1,67 +1,73 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
-import { relations } from "drizzle-orm";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  isAdmin: boolean("is_admin").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+import mongoose, { Schema, Document } from 'mongoose';
+import { z } from 'zod';
+
+// Zod schemas for validation
+export const insertUserSchema = z.object({
+  username: z.string().min(3).max(50),
+  password: z.string().min(6),
 });
 
-export const alerts = pgTable("alerts", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  alternativeRoute: text("alternative_route"), // for road closures
-  alternativeRoutes: text("alternative_routes"), // JSON array of drawn routes
-  category: varchar("category", { length: 50 }).notNull(), // road, criminal
-  severity: varchar("severity", { length: 20 }).notNull(), // critical, high, medium, low
-  xPosition: decimal("x_position", { precision: 5, scale: 2 }).notNull(), // percentage
-  yPosition: decimal("y_position", { precision: 5, scale: 2 }).notNull(), // percentage
-  createdBy: integer("created_by").notNull().references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  expiresAt: timestamp("expires_at"), // null means never expires
-  isActive: boolean("is_active").default(true).notNull(),
+export const insertAlertSchema = z.object({
+  title: z.string().min(1).max(100),
+  description: z.string().min(1),
+  category: z.enum(['road', 'criminal']),
+  severity: z.enum(['critical', 'high', 'medium', 'low']),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  alternativeRoute: z.string().optional(),
+  expiresAt: z.date().optional().nullable(),
+  isActive: z.boolean().default(true),
 });
 
-export const alertsRelations = relations(alerts, ({ one }) => ({
-  creator: one(users, {
-    fields: [alerts.createdBy],
-    references: [users.id],
-  }),
-}));
+// TypeScript interfaces
+export interface User extends Document {
+  username: string;
+  password: string;
+  createdAt: Date;
+}
 
-export const usersRelations = relations(users, ({ many }) => ({
-  alerts: many(alerts),
-}));
-
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
-
-export const insertAlertSchema = createInsertSchema(alerts).omit({
-  id: true,
-  createdBy: true,
-  createdAt: true,
-  isActive: true,
-  expiresAt: true,
-}).extend({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
-  category: z.enum(["road", "criminal"]),
-  severity: z.enum(["low", "medium", "high", "critical"]),
-  xPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)).refine((val) => val >= 0 && val <= 100, "Position must be between 0 and 100"),
-  yPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)).refine((val) => val >= 0 && val <= 100, "Position must be between 0 and 100"),
-  icon: z.string().optional(),
-  expirationMinutes: z.number().default(60), // Changed to minutes for more flexibility
-  alternativeRoutes: z.string().optional(),
-});
+export interface Alert extends Document {
+  title: string;
+  description: string;
+  category: 'road' | 'criminal';
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  latitude: number;
+  longitude: number;
+  alternativeRoute?: string;
+  expiresAt?: Date | null;
+  isActive: boolean;
+  createdBy: mongoose.Types.ObjectId;
+  createdAt: Date;
+}
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-export type Alert = typeof alerts.$inferSelect;
 export type InsertAlert = z.infer<typeof insertAlertSchema>;
+
+// Mongoose schemas
+const userSchema = new Schema<User>({
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const alertSchema = new Schema<Alert>({
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  category: { type: String, enum: ['road', 'criminal'], required: true },
+  severity: { type: String, enum: ['critical', 'high', 'medium', 'low'], required: true },
+  latitude: { type: Number, required: true },
+  longitude: { type: Number, required: true },
+  alternativeRoute: { type: String },
+  expiresAt: { type: Date, default: null },
+  isActive: { type: Boolean, default: true },
+  createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+// Indexes
+alertSchema.index({ isActive: 1, expiresAt: 1, createdAt: -1 });
+alertSchema.index({ createdBy: 1 });
+
+export const users = mongoose.model<User>('User', userSchema);
+export const alerts = mongoose.model<Alert>('Alert', alertSchema);

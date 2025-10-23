@@ -1,9 +1,5 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
-import * as schema from "@shared/schema";
 
-neonConfig.webSocketConstructor = ws;
+import mongoose from 'mongoose';
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,16 +7,23 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
+export async function connectDB() {
+  try {
+    await mongoose.connect(process.env.DATABASE_URL);
+    console.log('MongoDB connected successfully');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
+  }
+}
+
+// Handle mongoose connection errors
+mongoose.connection.on('error', (err) => {
+  console.error('Unexpected database connection error:', err);
 });
 
-export const db = drizzle({ client: pool, schema });
-
-// Handle pool errors gracefully
-pool.on('error', (err) => {
-  console.error('Unexpected database pool error:', err);
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected');
 });
+
+export const db = mongoose.connection;
