@@ -48,12 +48,13 @@ export class DatabaseStorage implements IStorage {
 
   async createAlert(insertAlert: InsertAlert & { createdBy: string }): Promise<Alert> {
     const alert = new AlertModel(insertAlert);
-    return await alert.save();
+    const saved = await alert.save();
+    return this.transformAlert(saved.toObject());
   }
 
   async getActiveAlerts(): Promise<Alert[]> {
     const now = new Date();
-    return await AlertModel.find({
+    const alerts = await AlertModel.find({
       isActive: true,
       $or: [
         { expiresAt: null },
@@ -61,15 +62,18 @@ export class DatabaseStorage implements IStorage {
       ]
     })
     .sort({ createdAt: -1 })
-    .lean() as Alert[];
+    .lean();
+    return alerts.map(alert => this.transformAlert(alert));
   }
 
   async getAlert(id: string): Promise<Alert | null> {
-    return await AlertModel.findById(id).lean() as Alert | null;
+    const alert = await AlertModel.findById(id).lean();
+    return alert ? this.transformAlert(alert) : null;
   }
 
   async updateAlert(id: string, updates: Partial<Alert>): Promise<Alert | null> {
-    return await AlertModel.findByIdAndUpdate(id, updates, { new: true }).lean() as Alert | null;
+    const alert = await AlertModel.findByIdAndUpdate(id, updates, { new: true }).lean();
+    return alert ? this.transformAlert(alert) : null;
   }
 
   async deleteAlert(id: string): Promise<boolean> {
@@ -78,9 +82,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAlertsByUser(userId: string): Promise<Alert[]> {
-    return await AlertModel.find({ createdBy: userId })
+    const alerts = await AlertModel.find({ createdBy: userId })
       .sort({ createdAt: -1 })
-      .lean() as Alert[];
+      .lean();
+    return alerts.map(alert => this.transformAlert(alert));
+  }
+
+  private transformAlert(alert: any): Alert {
+    return {
+      ...alert,
+      id: alert._id.toString(),
+      createdBy: alert.createdBy.toString(),
+    };
   }
 }
 

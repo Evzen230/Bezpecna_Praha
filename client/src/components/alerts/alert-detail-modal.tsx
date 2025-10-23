@@ -38,7 +38,7 @@ export default function AlertDetailModal({ alert, isOpen, onClose, onEdit }: Ale
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const isOwner = user?.id === alert.userId;
+  const isOwner = user?.id === alert.createdBy;
 
   const deleteAlertMutation = useMutation({
     mutationFn: async () => {

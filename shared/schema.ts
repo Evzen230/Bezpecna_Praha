@@ -19,6 +19,7 @@ export const UserModel = mongoose.model<IUser>('User', userSchema);
 
 // Alert schema
 export interface IAlert extends Document {
+  id: string;
   title: string;
   description: string;
   category: 'road' | 'criminal';
