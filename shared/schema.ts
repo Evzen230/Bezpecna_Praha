@@ -1,73 +1,56 @@
-
-import mongoose, { Schema, Document } from 'mongoose';
+import { pgTable, text, timestamp, boolean, serial, doublePrecision, varchar, integer } from 'drizzle-orm/pg-core';
+import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
-// Zod schemas for validation
-export const insertUserSchema = z.object({
-  username: z.string().min(3).max(50),
-  password: z.string().min(6),
+// User table
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  username: varchar('username', { length: 50 }).notNull().unique(),
+  password: text('password').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const insertAlertSchema = z.object({
+// Alert table
+export const alerts = pgTable('alerts', {
+  id: serial('id').primaryKey(),
+  title: varchar('title', { length: 100 }).notNull(),
+  description: text('description').notNull(),
+  category: varchar('category', { length: 20 }).notNull(), // 'road' | 'criminal'
+  severity: varchar('severity', { length: 20 }).notNull(), // 'critical' | 'high' | 'medium' | 'low'
+  xPosition: doublePrecision('x_position').notNull(), // Custom coordinate system for game environment
+  yPosition: doublePrecision('y_position').notNull(), // Custom coordinate system for game environment
+  icon: varchar('icon', { length: 50 }), // Optional icon identifier
+  alternativeRoute: text('alternative_route'),
+  expirationMinutes: integer('expiration_minutes').default(60), // Minutes until expiration
+  expiresAt: timestamp('expires_at'), // Calculated expiration timestamp
+  isActive: boolean('is_active').default(true).notNull(),
+  createdBy: integer('created_by').notNull().references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Insert schemas
+export const insertUserSchema = createInsertSchema(users, {
+  username: z.string().min(3).max(50),
+  password: z.string().min(6),
+}).omit({ id: true, createdAt: true });
+
+export const insertAlertSchema = createInsertSchema(alerts, {
   title: z.string().min(1).max(100),
   description: z.string().min(1),
   category: z.enum(['road', 'criminal']),
   severity: z.enum(['critical', 'high', 'medium', 'low']),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
+  xPosition: z.number().min(0).max(100),
+  yPosition: z.number().min(0).max(100),
+  icon: z.string().optional(),
   alternativeRoute: z.string().optional(),
-  expiresAt: z.date().optional().nullable(),
+  expirationMinutes: z.number().min(0).default(60),
+  expiresAt: z.coerce.date().optional().nullable(),
   isActive: z.boolean().default(true),
-});
+}).omit({ id: true, createdAt: true, createdBy: true });
 
-// TypeScript interfaces
-export interface User extends Document {
-  username: string;
-  password: string;
-  createdAt: Date;
-}
-
-export interface Alert extends Document {
-  title: string;
-  description: string;
-  category: 'road' | 'criminal';
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  latitude: number;
-  longitude: number;
-  alternativeRoute?: string;
-  expiresAt?: Date | null;
-  isActive: boolean;
-  createdBy: mongoose.Types.ObjectId;
-  createdAt: Date;
-}
-
+// Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
+
 export type InsertAlert = z.infer<typeof insertAlertSchema>;
-
-// Mongoose schemas
-const userSchema = new Schema<User>({
-  username: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-});
-
-const alertSchema = new Schema<Alert>({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  category: { type: String, enum: ['road', 'criminal'], required: true },
-  severity: { type: String, enum: ['critical', 'high', 'medium', 'low'], required: true },
-  latitude: { type: Number, required: true },
-  longitude: { type: Number, required: true },
-  alternativeRoute: { type: String },
-  expiresAt: { type: Date, default: null },
-  isActive: { type: Boolean, default: true },
-  createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  createdAt: { type: Date, default: Date.now },
-});
-
-// Indexes
-alertSchema.index({ isActive: 1, expiresAt: 1, createdAt: -1 });
-alertSchema.index({ createdBy: 1 });
-
-export const users = mongoose.model<User>('User', userSchema);
-export const alerts = mongoose.model<Alert>('Alert', alertSchema);
+export type Alert = typeof alerts.$inferSelect;

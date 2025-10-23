@@ -45,8 +45,8 @@ export default function AlertFormSidebar({
       description: editingAlert?.description || "",
       category: (editingAlert?.category as "road" | "criminal") || "road",
       severity: (editingAlert?.severity as "low" | "medium" | "high" | "critical") || "medium",
-      latitude: editingAlert ? editingAlert.latitude : 50.0755,
-      longitude: editingAlert ? editingAlert.longitude : 14.4378,
+      xPosition: editingAlert ? editingAlert.xPosition : (initialPosition?.x ?? 50),
+      yPosition: editingAlert ? editingAlert.yPosition : (initialPosition?.y ?? 50),
       alternativeRoute: editingAlert?.alternativeRoute || "",
       isActive: editingAlert?.isActive ?? true,
     },
@@ -278,16 +278,16 @@ export default function AlertFormSidebar({
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="latitude"
+                    name="xPosition"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Zeměpisná šířka</FormLabel>
+                        <FormLabel>X Pozice (%)</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                            step="0.0001"
+                            step="0.1"
                             readOnly
                           />
                         </FormControl>
@@ -298,16 +298,16 @@ export default function AlertFormSidebar({
 
                   <FormField
                     control={form.control}
-                    name="longitude"
+                    name="yPosition"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Zeměpisná délka</FormLabel>
+                        <FormLabel>Y Pozice (%)</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                            step="0.0001"
+                            step="0.1"
                             readOnly
                           />
                         </FormControl>

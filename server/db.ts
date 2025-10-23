@@ -1,5 +1,7 @@
-
-import mongoose from 'mongoose';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import pkg from 'pg';
+const { Pool } = pkg;
+import * as schema from '@shared/schema';
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -7,26 +9,8 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export async function connectDB() {
-  try {
-    await mongoose.connect(process.env.DATABASE_URL, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-    console.log('MongoDB connected successfully');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    throw error;
-  }
-}
-
-// Handle mongoose connection errors
-mongoose.connection.on('error', (err) => {
-  console.error('Unexpected database connection error:', err);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
 });
 
-mongoose.connection.on('disconnected', () => {
-  console.log('MongoDB disconnected');
-});
-
-export const db = mongoose.connection;
+export const db = drizzle(pool, { schema });
