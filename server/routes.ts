@@ -25,7 +25,7 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      const alerts = await storage.getAlertsByUser(req.user.id);
+      const alerts = await storage.getAlertsByUser(req.user._id.toString());
       res.json(alerts);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -42,7 +42,7 @@ export function registerRoutes(app: Express): Server {
       const validatedData = insertAlertSchema.parse(req.body);
       const alert = await storage.createAlert({
         ...validatedData,
-        createdBy: req.user.id,
+        createdBy: req.user._id,
       });
       res.status(201).json(alert);
     } catch (error: any) {
@@ -57,14 +57,14 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const alert = await storage.getAlert(id);
 
       if (!alert) {
         return res.status(404).json({ message: "Upozornění nenalezeno" });
       }
 
-      if (alert.createdBy !== req.user.id) {
+      if (alert.createdBy.toString() !== req.user._id.toString()) {
         return res.status(403).json({ message: "Nemáte oprávnění upravit toto upozornění" });
       }
 
@@ -83,14 +83,14 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const alert = await storage.getAlert(id);
 
       if (!alert) {
         return res.status(404).json({ message: "Upozornění nenalezeno" });
       }
 
-      if (alert.createdBy !== req.user.id) {
+      if (alert.createdBy.toString() !== req.user._id.toString()) {
         return res.status(403).json({ message: "Nemáte oprávnění smazat toto upozornění" });
       }
 
