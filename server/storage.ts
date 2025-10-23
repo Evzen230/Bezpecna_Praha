@@ -52,12 +52,12 @@ export class DatabaseStorage implements IStorage {
 
   async createAlert(alertData: InsertAlert & { createdBy: number }): Promise<Alert> {
     try {
-      const { expirationHours, ...insertData } = alertData;
+      const { expirationMinutes, ...insertData } = alertData;
       
       let expiresAt: Date | null = null;
-      if (expirationHours && expirationHours > 0) {
+      if (expirationMinutes && expirationMinutes > 0) {
         expiresAt = new Date();
-        expiresAt.setHours(expiresAt.getHours() + expirationHours);
+        expiresAt.setMinutes(expiresAt.getMinutes() + expirationMinutes);
       }
 
       console.log('Creating alert with data:', { ...insertData, expiresAt });

@@ -57,7 +57,7 @@ export const insertAlertSchema = createInsertSchema(alerts).omit({
   xPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)).refine((val) => val >= 0 && val <= 100, "Position must be between 0 and 100"),
   yPosition: z.union([z.string(), z.number()]).transform((val) => Number(val)).refine((val) => val >= 0 && val <= 100, "Position must be between 0 and 100"),
   icon: z.string().optional(),
-  expirationHours: z.number().default(24), // helper field for UI
+  expirationMinutes: z.number().default(60), // Changed to minutes for more flexibility
   alternativeRoutes: z.string().optional(),
 });
 

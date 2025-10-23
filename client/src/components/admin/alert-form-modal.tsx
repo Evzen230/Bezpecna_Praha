@@ -13,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Save, X } from "lucide-react";
-import RouteDrawer from "./route-drawer";
 import { availableIcons } from "@/components/alerts/alert-marker";
 
 interface AlertFormModalProps {
@@ -25,7 +24,7 @@ interface AlertFormModalProps {
 }
 
 const extendedAlertSchema = insertAlertSchema.extend({
-  expirationHours: insertAlertSchema.shape.expirationHours.default(24),
+  expirationMinutes: insertAlertSchema.shape.expirationMinutes.default(60),
   alternativeRoute: insertAlertSchema.shape.alternativeRoute.optional(),
 });
 
@@ -38,22 +37,18 @@ export default function AlertFormModal({
 }: AlertFormModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [alternativeRoutes, setAlternativeRoutes] = useState<any[]>(
-    editingAlert?.alternativeRoutes ? JSON.parse(editingAlert.alternativeRoutes) : []
-  );
 
   const form = useForm<z.infer<typeof insertAlertSchema>>({
     resolver: zodResolver(insertAlertSchema),
     defaultValues: {
       title: editingAlert?.title || "",
       description: editingAlert?.description || "",
-      category: editingAlert?.category || "road",
-      severity: editingAlert?.severity || "medium",
-      xPosition: editingAlert?.xPosition ?? initialPosition?.x ?? 50,
-      yPosition: editingAlert?.yPosition ?? initialPosition?.y ?? 50,
+      category: (editingAlert?.category as "road" | "criminal") || "road",
+      severity: (editingAlert?.severity as "low" | "medium" | "high" | "critical") || "medium",
+      xPosition: editingAlert ? Number(editingAlert.xPosition) : (initialPosition?.x ?? 50),
+      yPosition: editingAlert ? Number(editingAlert.yPosition) : (initialPosition?.y ?? 50),
       alternativeRoute: editingAlert?.alternativeRoute || "",
-      icon: editingAlert?.icon || "",
-      expirationHours: 24,
+      expirationMinutes: 60,
     },
   });
 
@@ -74,15 +69,15 @@ export default function AlertFormModal({
       queryClient.invalidateQueries({ queryKey: ["/api/alerts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/alerts"] });
       toast({
-        title: "Success",
-        description: "Alert created successfully",
+        title: "Úspěch",
+        description: "Upozornění bylo úspěšně vytvořeno",
       });
       form.reset();
       onAfterSubmit?.();
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: "Chyba",
         description: error.message,
         variant: "destructive",
       });
@@ -98,14 +93,14 @@ export default function AlertFormModal({
       queryClient.invalidateQueries({ queryKey: ["/api/alerts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/alerts"] });
       toast({
-        title: "Success",
-        description: "Alert updated successfully",
+        title: "Úspěch",
+        description: "Upozornění bylo úspěšně aktualizováno",
       });
       onAfterSubmit?.();
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: "Chyba",
         description: error.message,
         variant: "destructive",
       });
@@ -119,11 +114,7 @@ export default function AlertFormModal({
         ...data,
         xPosition: data.xPosition ?? initialPosition?.x ?? 50,
         yPosition: data.yPosition ?? initialPosition?.y ?? 50,
-        alternativeRoutes: JSON.stringify(alternativeRoutes),
         icon: data.icon || null,
-        expiresAt: data.expirationHours > 0 ? 
-          new Date(Date.now() + data.expirationHours * 60 * 60 * 1000).toISOString() : 
-          null
       };
 
     console.log('Processed alert data:', alertData);
@@ -139,9 +130,9 @@ export default function AlertFormModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg max-h-screen overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editingAlert ? "Edit Alert" : "Add New Alert"}</DialogTitle>
+          <DialogTitle>{editingAlert ? "Upravit upozornění" : "Přidat nové upozornění"}</DialogTitle>
           <DialogDescription>
-            {editingAlert ? "Modify the alert details below" : "Create a new emergency alert by filling out the form below"}
+            {editingAlert ? "Upravte podrobnosti upozornění níže" : "Vytvořte nové upozornění vyplněním formuláře níže"}
           </DialogDescription>
         </DialogHeader>
 
@@ -152,7 +143,7 @@ export default function AlertFormModal({
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Alert Category</FormLabel>
+                  <FormLabel>Kategorie upozornění</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -160,8 +151,8 @@ export default function AlertFormModal({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="road">Road Hazards</SelectItem>
-                      <SelectItem value="criminal">Criminal Activity</SelectItem>
+                      <SelectItem value="road">Dopravní nebezpečí</SelectItem>
+                      <SelectItem value="criminal">Kriminální aktivita</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -174,7 +165,7 @@ export default function AlertFormModal({
               name="severity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Severity</FormLabel>
+                  <FormLabel>Závažnost</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -182,10 +173,10 @@ export default function AlertFormModal({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
+                      <SelectItem value="low">Nízká</SelectItem>
+                      <SelectItem value="medium">Střední</SelectItem>
+                      <SelectItem value="high">Vysoká</SelectItem>
+                      <SelectItem value="critical">Kritická</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -198,11 +189,11 @@ export default function AlertFormModal({
               name="icon"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Icon</FormLabel>
+                  <FormLabel>Ikona</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Choose an icon" />
+                        <SelectValue placeholder="Vyberte ikonu" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -226,9 +217,9 @@ export default function AlertFormModal({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Alert Title</FormLabel>
+                  <FormLabel>Název upozornění</FormLabel>
                   <FormControl>
-                    <Input placeholder="Brief alert title" {...field} />
+                    <Input placeholder="Stručný název upozornění" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -240,10 +231,10 @@ export default function AlertFormModal({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Popis</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Detailed description of the alert"
+                      placeholder="Podrobný popis upozornění"
                       rows={3}
                       {...field} 
                     />
@@ -253,43 +244,16 @@ export default function AlertFormModal({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="alternativeRoute"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Alternative Route (for road closures)</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="e.g., Use Main St instead of Oak Ave, or take Highway 101 detour"
-                      rows={2}
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Route Drawing Section */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Draw Alternative Routes on Map</label>
-              <RouteDrawer
-                onRoutesChange={setAlternativeRoutes}
-                initialRoutes={editingAlert?.alternativeRoutes ? JSON.parse(editingAlert.alternativeRoutes) : []}
-              />
-            </div>
-
             <div className="text-xs text-gray-500 p-2 bg-blue-50 rounded">
-              Position will be automatically set from where you click on the map
+              Pozice bude automaticky nastavena podle toho, kam kliknete na mapě
             </div>
 
             <FormField
               control={form.control}
-              name="expirationHours"
+              name="expirationMinutes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Auto-expire after</FormLabel>
+                  <FormLabel>Vyprší za</FormLabel>
                   <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={String(field.value)}>
                     <FormControl>
                       <SelectTrigger>
@@ -297,11 +261,15 @@ export default function AlertFormModal({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">1 hour</SelectItem>
-                      <SelectItem value="6">6 hours</SelectItem>
-                      <SelectItem value="24">24 hours</SelectItem>
-                      <SelectItem value="168">1 week</SelectItem>
-                      <SelectItem value="0">Never expire</SelectItem>
+                      <SelectItem value="5">5 minut</SelectItem>
+                      <SelectItem value="10">10 minut</SelectItem>
+                      <SelectItem value="15">15 minut</SelectItem>
+                      <SelectItem value="30">30 minut</SelectItem>
+                      <SelectItem value="60">1 hodina</SelectItem>
+                      <SelectItem value="360">6 hodin</SelectItem>
+                      <SelectItem value="1440">24 hodin</SelectItem>
+                      <SelectItem value="10080">1 týden</SelectItem>
+                      <SelectItem value="0">Nikdy nevyprší</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -316,7 +284,7 @@ export default function AlertFormModal({
                 disabled={createAlertMutation.isPending || updateAlertMutation.isPending}
               >
                 <Save className="h-4 w-4 mr-2" />
-                {createAlertMutation.isPending || updateAlertMutation.isPending ? "Saving..." : "Save Alert"}
+                {createAlertMutation.isPending || updateAlertMutation.isPending ? "Ukládání..." : "Uložit upozornění"}
               </Button>
               <Button 
                 type="button" 
@@ -325,7 +293,7 @@ export default function AlertFormModal({
                 onClick={onClose}
               >
                 <X className="h-4 w-4 mr-2" />
-                Cancel
+                Zrušit
               </Button>
             </div>
           </form>

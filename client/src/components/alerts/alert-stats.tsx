@@ -33,18 +33,18 @@ export default function AlertStats() {
 
   const lastUpdated = alerts.length > 0 
     ? formatDistanceToNow(new Date(Math.max(...alerts.map(a => new Date(a.createdAt).getTime()))), { addSuffix: true })
-    : "No alerts";
+    : "Žádná upozornění";
 
   return (
     <Card className="absolute top-20 left-4 max-w-xs z-40 backdrop-blur-sm bg-white/95">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Active Alerts</CardTitle>
+        <CardTitle className="text-lg">Aktivní upozornění</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span className="text-sm text-gray-700">Critical</span>
+            <span className="text-sm text-gray-700">Kritická</span>
           </div>
           <span className="text-sm font-semibold text-gray-900">
             {severityCounts.critical || 0}
@@ -54,7 +54,7 @@ export default function AlertStats() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-            <span className="text-sm text-gray-700">High</span>
+            <span className="text-sm text-gray-700">Vysoká</span>
           </div>
           <span className="text-sm font-semibold text-gray-900">
             {severityCounts.high || 0}
@@ -64,7 +64,7 @@ export default function AlertStats() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <span className="text-sm text-gray-700">Medium</span>
+            <span className="text-sm text-gray-700">Střední</span>
           </div>
           <span className="text-sm font-semibold text-gray-900">
             {severityCounts.medium || 0}
@@ -74,7 +74,7 @@ export default function AlertStats() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-gray-700">Low</span>
+            <span className="text-sm text-gray-700">Nízká</span>
           </div>
           <span className="text-sm font-semibold text-gray-900">
             {severityCounts.low || 0}
@@ -83,7 +83,7 @@ export default function AlertStats() {
         
         <div className="pt-3 border-t border-gray-200">
           <div className="text-xs text-gray-500">
-            Last updated: {lastUpdated}
+            Poslední aktualizace: {lastUpdated}
           </div>
         </div>
       </CardContent>

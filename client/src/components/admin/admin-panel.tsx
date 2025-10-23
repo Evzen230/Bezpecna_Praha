@@ -33,13 +33,13 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/alerts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/alerts"] });
       toast({
-        title: "Success",
-        description: "Alert deleted successfully",
+        title: "Úspěch",
+        description: "Upozornění bylo úspěšně smazáno",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: "Chyba",
         description: error.message,
         variant: "destructive",
       });
@@ -52,7 +52,7 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
   };
 
   const handleDeleteAlert = (alertId: number) => {
-    if (confirm("Are you sure you want to delete this alert?")) {
+    if (confirm("Opravdu chcete smazat toto upozornění?")) {
       deleteAlertMutation.mutate(alertId);
     }
   };
@@ -81,7 +81,7 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
       <Card className="fixed top-20 right-4 w-80 z-40 backdrop-blur-sm bg-white/95 border border-gray-200 shadow-xl">
         <CardHeader className="border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Admin Panel</CardTitle>
+            <CardTitle className="text-lg">Administrace</CardTitle>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
@@ -95,18 +95,18 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
             onClick={() => setShowAlertForm(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add New Alert
+            Přidat nové upozornění
           </Button>
           
           {/* Active Alerts Management */}
           <div>
-            <h4 className="font-medium text-gray-900 mb-2">Manage Active Alerts</h4>
+            <h4 className="font-medium text-gray-900 mb-2">Spravovat aktivní upozornění</h4>
             <ScrollArea className="h-64">
               <div className="space-y-2">
                 {isLoading ? (
-                  <div className="text-center text-gray-500 py-4">Loading...</div>
+                  <div className="text-center text-gray-500 py-4">Načítání...</div>
                 ) : activeAlerts.length === 0 ? (
-                  <div className="text-center text-gray-500 py-4">No active alerts</div>
+                  <div className="text-center text-gray-500 py-4">Žádná aktivní upozornění</div>
                 ) : (
                   activeAlerts.map((alert) => (
                     <div key={alert.id} className="bg-gray-50 p-3 rounded-md">
@@ -153,15 +153,15 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
           
           {/* Quick Stats */}
           <div className="border-t border-gray-200 pt-4">
-            <h4 className="font-medium text-gray-900 mb-2">Quick Stats</h4>
+            <h4 className="font-medium text-gray-900 mb-2">Rychlé statistiky</h4>
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-gray-50 p-2 rounded text-center">
                 <div className="font-semibold text-gray-900">{activeAlerts.length}</div>
-                <div className="text-xs text-gray-600">Total Active</div>
+                <div className="text-xs text-gray-600">Celkem aktivních</div>
               </div>
               <div className="bg-gray-50 p-2 rounded text-center">
                 <div className="font-semibold text-gray-900">{todayAlerts.length}</div>
-                <div className="text-xs text-gray-600">Today</div>
+                <div className="text-xs text-gray-600">Dnes</div>
               </div>
             </div>
           </div>

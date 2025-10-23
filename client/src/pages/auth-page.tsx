@@ -66,21 +66,21 @@ export default function AuthPage() {
               <Shield className="h-8 w-8 text-primary" />
               <h1 className="text-2xl font-bold text-gray-900">CityAlert</h1>
             </div>
-            <p className="text-gray-600">Admin access to emergency alert system</p>
+            <p className="text-gray-600">Přístup pro administrátory do systému upozornění</p>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
+              <TabsTrigger value="login">Přihlášení</TabsTrigger>
+              <TabsTrigger value="register">Registrace</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login">
               <Card>
                 <CardHeader>
-                  <CardTitle>Admin Login</CardTitle>
+                  <CardTitle>Přihlášení administrátora</CardTitle>
                   <CardDescription>
-                    Access the admin panel to manage emergency alerts
+                    Přístup k administračnímu panelu pro správu upozornění
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -91,9 +91,9 @@ export default function AuthPage() {
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Username</FormLabel>
+                            <FormLabel>Uživatelské jméno</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter admin username" {...field} />
+                              <Input placeholder="Zadejte uživatelské jméno" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -104,9 +104,9 @@ export default function AuthPage() {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Password</FormLabel>
+                            <FormLabel>Heslo</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="Enter password" {...field} />
+                              <Input type="password" placeholder="Zadejte heslo" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -117,7 +117,7 @@ export default function AuthPage() {
                         className="w-full" 
                         disabled={loginMutation.isPending}
                       >
-                        {loginMutation.isPending ? "Logging in..." : "Login"}
+                        {loginMutation.isPending ? "Přihlašování..." : "Přihlásit se"}
                       </Button>
                     </form>
                   </Form>
@@ -128,9 +128,9 @@ export default function AuthPage() {
             <TabsContent value="register">
               <Card>
                 <CardHeader>
-                  <CardTitle>Admin Registration</CardTitle>
+                  <CardTitle>Registrace administrátora</CardTitle>
                   <CardDescription>
-                    Create a new admin account to manage alerts
+                    Vytvořte nový účet pro správu upozornění
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -141,9 +141,9 @@ export default function AuthPage() {
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Username</FormLabel>
+                            <FormLabel>Uživatelské jméno</FormLabel>
                             <FormControl>
-                              <Input placeholder="Choose admin username" {...field} />
+                              <Input placeholder="Zvolte uživatelské jméno" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -154,9 +154,9 @@ export default function AuthPage() {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Password</FormLabel>
+                            <FormLabel>Heslo</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="Create password" {...field} />
+                              <Input type="password" placeholder="Vytvořte heslo" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -167,7 +167,7 @@ export default function AuthPage() {
                         className="w-full" 
                         disabled={registerMutation.isPending}
                       >
-                        {registerMutation.isPending ? "Creating account..." : "Register"}
+                        {registerMutation.isPending ? "Vytváření účtu..." : "Registrovat"}
                       </Button>
                     </form>
                   </Form>
@@ -182,9 +182,9 @@ export default function AuthPage() {
       <div className="flex-1 bg-gradient-to-br from-primary to-blue-800 text-white p-8 flex items-center justify-center">
         <div className="max-w-lg text-center space-y-6">
           <div className="space-y-4">
-            <h2 className="text-3xl font-bold">Emergency Alert Management</h2>
+            <h2 className="text-3xl font-bold">Správa upozornění</h2>
             <p className="text-lg text-blue-100">
-              Keep your community safe with real-time emergency alerts and hazard reporting
+              Udržujte svou komunitu v bezpečí díky upozorněním v reálném čase
             </p>
           </div>
           
@@ -192,24 +192,24 @@ export default function AuthPage() {
             <div className="flex items-center space-x-3 p-4 bg-white/10 rounded-lg backdrop-blur-sm">
               <AlertTriangle className="h-8 w-8 text-yellow-300" />
               <div className="text-left">
-                <h3 className="font-semibold">Real-time Alerts</h3>
-                <p className="text-sm text-blue-100">Instant emergency notifications</p>
+                <h3 className="font-semibold">Upozornění v reálném čase</h3>
+                <p className="text-sm text-blue-100">Okamžitá upozornění</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-3 p-4 bg-white/10 rounded-lg backdrop-blur-sm">
               <MapPin className="h-8 w-8 text-green-300" />
               <div className="text-left">
-                <h3 className="font-semibold">Location Mapping</h3>
-                <p className="text-sm text-blue-100">Precise geographic targeting</p>
+                <h3 className="font-semibold">Mapování lokací</h3>
+                <p className="text-sm text-blue-100">Přesné geografické cílení</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-3 p-4 bg-white/10 rounded-lg backdrop-blur-sm">
               <Users className="h-8 w-8 text-purple-300" />
               <div className="text-left">
-                <h3 className="font-semibold">Community Safety</h3>
-                <p className="text-sm text-blue-100">Protecting citizens together</p>
+                <h3 className="font-semibold">Bezpečnost komunity</h3>
+                <p className="text-sm text-blue-100">Společná ochrana občanů</p>
               </div>
             </div>
           </div>
