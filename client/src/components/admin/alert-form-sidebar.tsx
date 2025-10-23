@@ -24,11 +24,6 @@ interface AlertFormSidebarProps {
   onRoutesChange?: (routes: any[]) => void;
 }
 
-const extendedAlertSchema = insertAlertSchema.extend({
-  expirationMinutes: insertAlertSchema.shape.expirationMinutes.default(60),
-  alternativeRoute: insertAlertSchema.shape.alternativeRoute.optional(),
-});
-
 export default function AlertFormSidebar({ 
   isOpen, 
   onClose, 
@@ -41,6 +36,8 @@ export default function AlertFormSidebar({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const [expirationMinutes, setExpirationMinutes] = useState(60);
+
   const form = useForm<z.infer<typeof insertAlertSchema>>({
     resolver: zodResolver(insertAlertSchema),
     defaultValues: {
@@ -48,10 +45,10 @@ export default function AlertFormSidebar({
       description: editingAlert?.description || "",
       category: (editingAlert?.category as "road" | "criminal") || "road",
       severity: (editingAlert?.severity as "low" | "medium" | "high" | "critical") || "medium",
-      xPosition: editingAlert ? Number(editingAlert.xPosition) : (initialPosition?.x ?? 50),
-      yPosition: editingAlert ? Number(editingAlert.yPosition) : (initialPosition?.y ?? 50),
+      latitude: editingAlert ? editingAlert.latitude : 50.0755,
+      longitude: editingAlert ? editingAlert.longitude : 14.4378,
       alternativeRoute: editingAlert?.alternativeRoute || "",
-      expirationMinutes: 60,
+      isActive: editingAlert?.isActive ?? true,
     },
   });
 
@@ -113,14 +110,15 @@ export default function AlertFormSidebar({
   const onSubmit = (data: z.infer<typeof insertAlertSchema>) => {
     const submitData: any = {
       ...data,
-      xPosition: String(data.xPosition),
-      yPosition: String(data.yPosition),
+      expiresAt: expirationMinutes > 0 
+        ? new Date(Date.now() + expirationMinutes * 60000)
+        : null,
     };
 
     if (editingAlert) {
       updateAlertMutation.mutate(submitData);
     } else {
-      createAlertMutation.mutate(data);
+      createAlertMutation.mutate(submitData);
     }
   };
 
@@ -254,51 +252,42 @@ export default function AlertFormSidebar({
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="expirationMinutes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Vyprší za</FormLabel>
-                      <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={String(field.value)}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="5">5 minut</SelectItem>
-                          <SelectItem value="10">10 minut</SelectItem>
-                          <SelectItem value="15">15 minut</SelectItem>
-                          <SelectItem value="30">30 minut</SelectItem>
-                          <SelectItem value="60">1 hodina</SelectItem>
-                          <SelectItem value="360">6 hodin</SelectItem>
-                          <SelectItem value="1440">24 hodin</SelectItem>
-                          <SelectItem value="10080">1 týden</SelectItem>
-                          <SelectItem value="0">Nikdy nevyprší</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Vyprší za
+                  </label>
+                  <Select onValueChange={(value) => setExpirationMinutes(parseInt(value))} defaultValue={String(expirationMinutes)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 minut</SelectItem>
+                      <SelectItem value="10">10 minut</SelectItem>
+                      <SelectItem value="15">15 minut</SelectItem>
+                      <SelectItem value="30">30 minut</SelectItem>
+                      <SelectItem value="60">1 hodina</SelectItem>
+                      <SelectItem value="360">6 hodin</SelectItem>
+                      <SelectItem value="1440">24 hodin</SelectItem>
+                      <SelectItem value="10080">1 týden</SelectItem>
+                      <SelectItem value="0">Nikdy nevyprší</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
 
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="xPosition"
+                    name="latitude"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Pozice X</FormLabel>
+                        <FormLabel>Zeměpisná šířka</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                            step="0.1"
-                            min="0"
-                            max="100"
+                            step="0.0001"
                             readOnly
                           />
                         </FormControl>
@@ -309,18 +298,16 @@ export default function AlertFormSidebar({
 
                   <FormField
                     control={form.control}
-                    name="yPosition"
+                    name="longitude"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Pozice Y</FormLabel>
+                        <FormLabel>Zeměpisná délka</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                            step="0.1"
-                            min="0"
-                            max="100"
+                            step="0.0001"
                             readOnly
                           />
                         </FormControl>
