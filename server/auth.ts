@@ -5,7 +5,7 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { users, type User as SelectUser, type InsertUser } from "@shared/schema";
+import { type User, type InsertUser, loginSchema, verifyEmailSchema } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
 
@@ -27,7 +27,16 @@ async function comparePasswords(
 
 declare global {
   namespace Express {
-    interface User extends SelectUser {}
+    interface User {
+      id: string;
+      email: string;
+      username: string;
+      role: 'user' | 'admin';
+      emailVerified: boolean;
+      acceptedTerms: boolean;
+      acceptedPrivacy: boolean;
+      createdAt: Date;
+    }
   }
 }
 
@@ -54,25 +63,31 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const user = await storage.getUserByUsername(username);
-        if (!user) {
-          return done(null, false, { message: "Nesprávné uživatelské jméno nebo heslo." });
+    new LocalStrategy(
+      { usernameField: "email" },
+      async (email, password, done) => {
+        try {
+          const user = await storage.getUserByEmail(email);
+          if (!user) {
+            return done(null, false, { message: "Nesprávný e-mail nebo heslo." });
+          }
+          if (!user.emailVerified) {
+            return done(null, false, { message: "Prosím ověřte svou e-mailovou adresu." });
+          }
+          const isMatch = await comparePasswords(password, user.password);
+          if (!isMatch) {
+            return done(null, false, { message: "Nesprávný e-mail nebo heslo." });
+          }
+          return done(null, user);
+        } catch (err) {
+          return done(err);
         }
-        const isMatch = await comparePasswords(password, user.password);
-        if (!isMatch) {
-          return done(null, false, { message: "Nesprávné uživatelské jméno nebo heslo." });
-        }
-        return done(null, user);
-      } catch (err) {
-        return done(err);
       }
-    })
+    )
   );
 
   passport.serializeUser((user, done) => {
-    done(null, user._id.toString());
+    done(null, user.id);
   });
 
   passport.deserializeUser(async (id: string, done) => {
@@ -86,32 +101,59 @@ export function setupAuth(app: Express) {
 
   app.post("/api/register", async (req, res, next) => {
     try {
-      const { username, password } = req.body as InsertUser;
+      const { email, username, password, acceptedTerms, acceptedPrivacy } = req.body as InsertUser;
 
-      if (!username || !password) {
-        return res.status(400).json({ message: "Uživatelské jméno a heslo jsou povinné" });
+      if (!email || !username || !password) {
+        return res.status(400).json({ message: "E-mail, uživatelské jméno a heslo jsou povinné" });
       }
 
-      const existingUser = await storage.getUserByUsername(username);
+      if (!acceptedTerms || !acceptedPrivacy) {
+        return res.status(400).json({ message: "Musíte souhlasit s podmínkami a zásadami" });
+      }
+
+      const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
-        return res.status(400).json({ message: "Uživatelské jméno již existuje" });
+        return res.status(400).json({ message: "E-mail je již registrován" });
       }
 
       const hashedPassword = await hashPassword(password);
       const newUser = await storage.createUser({
+        email,
         username,
         password: hashedPassword,
+        acceptedTerms,
+        acceptedPrivacy,
       });
 
-      req.login(newUser, (err) => {
-        if (err) {
-          return next(err);
-        }
-        return res.json({
-          message: "Registrace úspěšná",
-          user: { id: newUser._id, username: newUser.username },
-        });
+      return res.status(201).json({
+        message: "Registrace úspěšná. Prosím zkontrolujte svou e-mailovou adresu pro ověřovací kód.",
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          username: newUser.username,
+          verificationCode: newUser.verificationCode,
+          emailVerified: false,
+        },
       });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/verify-email", async (req, res, next) => {
+    try {
+      const { email, verificationCode } = req.body;
+
+      if (!email || !verificationCode) {
+        return res.status(400).json({ message: "E-mail a ověřovací kód jsou povinné" });
+      }
+
+      const isVerified = await storage.verifyUserEmail(email, verificationCode);
+      if (!isVerified) {
+        return res.status(400).json({ message: "Neplatný ověřovací kód" });
+      }
+
+      return res.json({ message: "E-mail úspěšně ověřen. Nyní se můžete přihlásit." });
     } catch (error) {
       next(error);
     }
@@ -134,7 +176,13 @@ export function setupAuth(app: Express) {
 
         return res.json({
           message: "Přihlášení úspěšné",
-          user: { id: user._id, username: user.username },
+          user: {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            role: user.role,
+            emailVerified: user.emailVerified,
+          },
         });
       });
     })(req, res, next);

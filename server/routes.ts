@@ -24,8 +24,12 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ message: "Nepřihlášen" });
     }
 
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ message: "Nemáte oprávnění" });
+    }
+
     try {
-      const alerts = await storage.getAlertsByUser(req.user._id.toString());
+      const alerts = await storage.getActiveAlerts();
       res.json(alerts);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -42,7 +46,7 @@ export function registerRoutes(app: Express): Server {
       const validatedData = insertAlertSchema.parse(req.body);
       const alert = await storage.createAlert({
         ...validatedData,
-        createdBy: req.user._id,
+        createdBy: req.user?.id || "",
       });
       res.status(201).json(alert);
     } catch (error: any) {
@@ -50,7 +54,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Update alert
+  // Update alert (only admin or creator)
   app.put("/api/alerts/:id", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Nepřihlášen" });
@@ -64,7 +68,10 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Upozornění nenalezeno" });
       }
 
-      if (alert.createdBy.toString() !== req.user._id.toString()) {
+      const isCreator = alert.createdBy === req.user?.id;
+      const isAdmin = req.user?.role === 'admin';
+
+      if (!isCreator && !isAdmin) {
         return res.status(403).json({ message: "Nemáte oprávnění upravit toto upozornění" });
       }
 
@@ -76,7 +83,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Delete alert
+  // Delete alert (only admin or creator)
   app.delete("/api/alerts/:id", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Nepřihlášen" });
@@ -90,7 +97,10 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Upozornění nenalezeno" });
       }
 
-      if (alert.createdBy.toString() !== req.user._id.toString()) {
+      const isCreator = alert.createdBy === req.user?.id;
+      const isAdmin = req.user?.role === 'admin';
+
+      if (!isCreator && !isAdmin) {
         return res.status(403).json({ message: "Nemáte oprávnění smazat toto upozornění" });
       }
 
