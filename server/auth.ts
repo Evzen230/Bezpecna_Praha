@@ -6,6 +6,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { type User, type InsertUser, loginSchema, verifyEmailSchema } from "@shared/schema";
+import { sendVerificationEmail, sendPasswordResetEmail } from "./email";
 
 const scryptAsync = promisify(scrypt);
 
@@ -128,6 +129,11 @@ export function setupAuth(app: Express) {
         acceptedPrivacy,
       });
 
+      // Send verification email
+      if (newUser.verificationCode) {
+        await sendVerificationEmail(email, newUser.verificationCode);
+      }
+
       return res.status(201).json({
         message: "Registrace úspěšná. Prosím zkontrolujte svou e-mailovou adresu pro ověřovací kód.",
         user: {
@@ -175,8 +181,11 @@ export function setupAuth(app: Express) {
         return res.status(404).json({ message: "Uživatel nebyl nalezen" });
       }
 
+      // Send password reset email
+      await sendPasswordResetEmail(result.email, result.resetCode);
+
       return res.json({
-        message: "Reset kód byl vygenerován. V produkci by byl odeslán e-mailem.",
+        message: "Pokud účet existuje, reset kód byl odeslán na e-mail.",
         resetCode: result.resetCode,
       });
     } catch (error) {

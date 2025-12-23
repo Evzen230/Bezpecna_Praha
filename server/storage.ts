@@ -101,7 +101,7 @@ export class MemStorage implements IStorage {
     return true;
   }
 
-  async requestPasswordReset(emailOrUsername: string): Promise<{ resetCode: string } | null> {
+  async requestPasswordReset(emailOrUsername: string): Promise<{ resetCode: string; email: string } | null> {
     let user = await this.getUserByEmail(emailOrUsername);
     if (!user) {
       user = await this.getUserByUsername(emailOrUsername);
@@ -110,7 +110,7 @@ export class MemStorage implements IStorage {
 
     const resetCode = Math.random().toString().slice(2, 8);
     this.resetCodes.set(emailOrUsername, { code: resetCode, expiresAt: Date.now() + 15 * 60000 });
-    return { resetCode };
+    return { resetCode, email: user.email };
   }
 
   async resetPassword(emailOrUsername: string, resetCode: string, newPassword: string): Promise<boolean> {

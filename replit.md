@@ -80,6 +80,18 @@ Current decision: Build game-focused city management system with custom coordina
 2. **Alert Display**: Page load → Fetch alerts from API → Filter by criteria → Render map markers → Display statistics
 3. **Authentication**: User submits credentials → Passport validation → Session creation → Protected route access
 
+## Email System
+
+### Configuration
+- **Service**: Local file-based storage (for testing and development)
+- **Location**: E-mails saved to `emails/emails.log`
+- **Usage**: Automatic integration with registration and password reset flows
+- **Future**: Can be switched to Mailtrap, Gmail SMTP, Resend, or other SMTP providers without code changes
+
+### Email Events
+- Verification email sent on user registration
+- Password reset email sent when user requests password reset
+
 ## External Dependencies
 
 ### Core Dependencies
@@ -90,6 +102,7 @@ Current decision: Build game-focused city management system with custom coordina
 - **passport**: Authentication middleware
 - **express-session**: Session management
 - **zod**: Runtime type validation
+- **resend**: Email service library (pre-installed for future use)
 
 ### Development Tools
 - **Vite**: Fast build tool and dev server
