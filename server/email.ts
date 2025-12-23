@@ -1,5 +1,4 @@
-import { appendFileSync, existsSync, mkdirSync } from "fs";
-import { join } from "path";
+import nodemailer from "nodemailer";
 
 interface EmailOptions {
   to: string;
@@ -7,37 +6,47 @@ interface EmailOptions {
   html: string;
 }
 
-// Email storage directory
-const emailDir = join(process.cwd(), "emails");
+// Create transporter - uses Gmail SMTP via App Password
+const createTransporter = () => {
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
 
-function ensureEmailDir() {
-  if (!existsSync(emailDir)) {
-    mkdirSync(emailDir, { recursive: true });
+  if (!gmailUser || !gmailAppPassword) {
+    console.warn("[EMAIL] Gmail credentials not configured. Emails will not be sent.");
+    return null;
   }
-}
+
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: gmailUser,
+      pass: gmailAppPassword,
+    },
+  });
+};
+
+let transporter: nodemailer.Transporter | null = null;
 
 /**
- * Send email - currently saves to file for testing
- * Later can be replaced with SMTP provider (Gmail, Mailtrap, etc)
+ * Send email via Gmail SMTP
  */
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    ensureEmailDir();
+    if (!transporter) {
+      transporter = createTransporter();
+    }
 
-    const timestamp = new Date().toISOString();
-    const emailContent = `
-================================
-TO: ${options.to}
-SUBJECT: ${options.subject}
-TIME: ${timestamp}
-================================
-${options.html}
-================================
+    if (!transporter) {
+      console.error("[EMAIL] Gmail transporter not configured");
+      return false;
+    }
 
-`;
-
-    const logFile = join(emailDir, "emails.log");
-    appendFileSync(logFile, emailContent);
+    await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+    });
 
     console.log(`[EMAIL] Sent to ${options.to}: ${options.subject}`);
     return true;

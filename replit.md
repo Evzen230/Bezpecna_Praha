@@ -83,14 +83,19 @@ Current decision: Build game-focused city management system with custom coordina
 ## Email System
 
 ### Configuration
-- **Service**: Local file-based storage (for testing and development)
-- **Location**: E-mails saved to `emails/emails.log`
+- **Service**: Gmail SMTP via App Password
+- **Provider**: Google Gmail (free, no domain required)
+- **Credentials**: Stored as secure environment variables (GMAIL_USER, GMAIL_APP_PASSWORD)
 - **Usage**: Automatic integration with registration and password reset flows
-- **Future**: Can be switched to Mailtrap, Gmail SMTP, Resend, or other SMTP providers without code changes
 
 ### Email Events
 - Verification email sent on user registration
 - Password reset email sent when user requests password reset
+
+### How It Works
+- Uses Nodemailer with Gmail SMTP transporter
+- App Password approach (not regular Gmail password) for security
+- Credentials are safely stored in Replit Secrets management
 
 ## External Dependencies
 
