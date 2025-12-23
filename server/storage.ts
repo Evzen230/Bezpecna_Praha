@@ -18,6 +18,8 @@ export interface IStorage {
   unbanUser(userId: string): Promise<boolean>;
   changeUserRole(userId: string, role: 'admin' | 'user'): Promise<boolean>;
   getAllUsers(): Promise<User[]>;
+  getDebugInfo(): Promise<{ users: any[]; alerts: any[] }>;
+  clearAllData(): Promise<boolean>;
 
   createAlert(alert: InsertAlert & { createdBy: string }): Promise<Alert>;
   getActiveAlerts(): Promise<Alert[]>;
@@ -235,6 +237,19 @@ export class MemStorage implements IStorage {
     if (!user) return false;
     user.role = role;
     this.users.set(userId, user);
+    return true;
+  }
+
+  async getDebugInfo(): Promise<{ users: any[]; alerts: any[] }> {
+    return {
+      users: Array.from(this.users.values()),
+      alerts: Array.from(this.alerts.values()),
+    };
+  }
+
+  async clearAllData(): Promise<boolean> {
+    this.users.clear();
+    this.alerts.clear();
     return true;
   }
 }

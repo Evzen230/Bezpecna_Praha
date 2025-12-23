@@ -202,6 +202,57 @@ export default function AdminPage() {
             Celkem: {users.length} uživatelů
           </p>
         </Card>
+
+        <Card className="p-6 mt-6">
+          <h2 className="text-xl font-semibold mb-4">Debug - Databáze</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Podívej se na všechna data v aplikaci (JSON formát)
+          </p>
+          <Button 
+            onClick={() => {
+              fetch('/api/admin/debug', { credentials: 'include' })
+                .then(r => r.json())
+                .then(data => {
+                  const json = JSON.stringify(data, null, 2);
+                  console.log('Database:', data);
+                  toast({ 
+                    title: "Databáze", 
+                    description: "Data jsou vidět v konzoli (F12 → Console)" 
+                  });
+                  // Also copy to clipboard
+                  navigator.clipboard.writeText(json);
+                });
+            }}
+            variant="outline"
+            className="gap-2"
+            data-testid="button-view-database"
+          >
+            Zobrazit data
+          </Button>
+          <Button 
+            onClick={() => {
+              if (confirm('Opravdu chceš smazat VŠECHNA data?')) {
+                fetch('/api/admin/debug/clear', { 
+                  method: 'POST',
+                  credentials: 'include' 
+                })
+                  .then(r => r.json())
+                  .then(() => {
+                    toast({ 
+                      title: "Smazáno", 
+                      description: "Všechna data byla odstraněna" 
+                    });
+                    refetch();
+                  });
+              }
+            }}
+            variant="destructive"
+            className="gap-2 ml-2"
+            data-testid="button-clear-database"
+          >
+            Smazat vše
+          </Button>
+        </Card>
       </div>
     </div>
   );

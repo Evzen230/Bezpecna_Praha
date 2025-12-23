@@ -214,6 +214,42 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get debug info (admin only) - see all data in database
+  app.get("/api/admin/debug", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Nepřihlášen" });
+    }
+
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ message: "Nemáte oprávnění" });
+    }
+
+    try {
+      const debugInfo = await storage.getDebugInfo();
+      res.json(debugInfo);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Clear all data (admin only) - reset database
+  app.post("/api/admin/debug/clear", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Nepřihlášen" });
+    }
+
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ message: "Nemáte oprávnění" });
+    }
+
+    try {
+      await storage.clearAllData();
+      res.json({ message: "Všechna data byla smazána." });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
