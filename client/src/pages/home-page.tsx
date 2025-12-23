@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Settings, LogOut, Filter, User } from "lucide-react";
 import { useLocation } from "wouter";
@@ -27,28 +33,44 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <h1 className="text-xl font-bold text-gray-900">Bezpečná Praha</h1>
-              <Badge variant="default" className="bg-primary text-white">ŽIVĚ</Badge>
+              <h1 className="text-xl font-bold text-gray-900">
+                Bezpečná Praha
+              </h1>
+              <Badge variant="default" className="bg-primary text-white">
+                ŽIVĚ
+              </Badge>
             </div>
-            
+
             {/* Filter Controls */}
             <div className="hidden md:flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Filtrovat upozornění:</label>
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <label className="text-sm font-medium text-gray-700">
+                  Filtrovat upozornění:
+                </label>
+                <Select
+                  value={categoryFilter}
+                  onValueChange={setCategoryFilter}
+                >
                   <SelectTrigger className="w-[140px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Všechny typy</SelectItem>
                     <SelectItem value="road">Dopravní nebezpečí</SelectItem>
-                    <SelectItem value="criminal">Kriminální aktivita</SelectItem>
+                    <SelectItem value="criminal">
+                      Kriminální aktivita
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Závažnost:</label>
-                <Select value={severityFilter} onValueChange={setSeverityFilter}>
+                <label className="text-sm font-medium text-gray-700">
+                  Závažnost:
+                </label>
+                <Select
+                  value={severityFilter}
+                  onValueChange={setSeverityFilter}
+                >
                   <SelectTrigger className="w-[120px]">
                     <SelectValue />
                   </SelectTrigger>
@@ -91,7 +113,7 @@ export default function HomePage() {
                   className="hidden sm:flex"
                 >
                   <User className="h-4 w-4 mr-2" />
-                  Přihlášení administrátora
+                  Přihlášení
                 </Button>
               )}
             </div>
@@ -101,24 +123,26 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="relative">
-        <InteractiveMap 
+        <InteractiveMap
           categoryFilter={categoryFilter}
           severityFilter={severityFilter}
           isAdmin={!!user}
         />
-        
+
         {/* Alert Statistics Panel */}
         <AlertStats />
-        
+
         {/* Admin Panel */}
         {user && showAdminPanel && (
           <AdminPanel onClose={() => setShowAdminPanel(false)} />
         )}
-        
+
         {/* Mobile Filter Button */}
         <Button
           className="md:hidden fixed bottom-20 right-4 z-40 rounded-full w-12 h-12 p-0"
-          onClick={() => {/* TODO: Show mobile filter modal */}}
+          onClick={() => {
+            /* TODO: Show mobile filter modal */
+          }}
         >
           <Filter className="h-5 w-5" />
         </Button>
