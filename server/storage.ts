@@ -1,12 +1,9 @@
-import { UserModel, AlertModel, type User, type InsertUser, type Alert, type InsertAlert, type IUser, type IAlert } from "@shared/schema";
+import { type User, type InsertUser, type Alert, type InsertAlert } from "@shared/schema";
 import session from "express-session";
-import MongoStore from "connect-mongodb-session";
+import createMemoryStore from "memorystore";
+import { nanoid } from "nanoid";
 
-const MongoDBStore = MongoStore(session);
-
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL must be set");
-}
+const MemoryStore = createMemoryStore(session);
 
 export interface IStorage {
   getUser(id: string): Promise<User | null>;
@@ -23,78 +20,114 @@ export interface IStorage {
   sessionStore: session.Store;
 }
 
-export class DatabaseStorage implements IStorage {
+export class MemStorage implements IStorage {
   sessionStore: session.Store;
+  private users: Map<string, User>;
+  private alerts: Map<string, Alert>;
 
   constructor() {
-    this.sessionStore = new MongoDBStore({
-      uri: process.env.DATABASE_URL!,
-      collection: 'sessions'
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000
     });
+    this.users = new Map();
+    this.alerts = new Map();
   }
 
   async getUser(id: string): Promise<User | null> {
-    return await UserModel.findById(id).lean() as User | null;
+    return this.users.get(id) || null;
   }
 
   async getUserByUsername(username: string): Promise<User | null> {
-    return await UserModel.findOne({ username }).lean() as User | null;
+    const users = Array.from(this.users.values());
+    for (const user of users) {
+      if (user.username === username) {
+        return user;
+      }
+    }
+    return null;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const user = new UserModel(insertUser);
-    return await user.save();
+    const id = nanoid();
+    const user: User = {
+      id,
+      username: insertUser.username,
+      password: insertUser.password,
+      createdAt: new Date()
+    };
+    this.users.set(id, user);
+    return user;
   }
 
   async createAlert(insertAlert: InsertAlert & { createdBy: string }): Promise<Alert> {
-    const alert = new AlertModel(insertAlert);
-    const saved = await alert.save();
-    return this.transformAlert(saved.toObject());
+    const id = nanoid();
+    const now = new Date();
+    const expiresAt = insertAlert.expirationMinutes > 0
+      ? new Date(now.getTime() + insertAlert.expirationMinutes * 60000)
+      : null;
+    
+    const alert: Alert = {
+      id,
+      title: insertAlert.title,
+      description: insertAlert.description,
+      category: insertAlert.category,
+      severity: insertAlert.severity,
+      xPosition: insertAlert.xPosition,
+      yPosition: insertAlert.yPosition,
+      icon: insertAlert.icon,
+      alternativeRoute: insertAlert.alternativeRoute,
+      expirationMinutes: insertAlert.expirationMinutes,
+      expiresAt,
+      isActive: insertAlert.isActive ?? true,
+      createdBy: insertAlert.createdBy,
+      createdAt: now
+    };
+    this.alerts.set(id, alert);
+    return alert;
   }
 
   async getActiveAlerts(): Promise<Alert[]> {
     const now = new Date();
-    const alerts = await AlertModel.find({
-      isActive: true,
-      $or: [
-        { expiresAt: null },
-        { expiresAt: { $gte: now } }
-      ]
-    })
-    .sort({ createdAt: -1 })
-    .lean();
-    return alerts.map(alert => this.transformAlert(alert));
+    const activeAlerts: Alert[] = [];
+    const alerts = Array.from(this.alerts.values());
+    for (const alert of alerts) {
+      if (alert.isActive && (!alert.expiresAt || alert.expiresAt >= now)) {
+        activeAlerts.push(alert);
+      }
+    }
+    return activeAlerts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async getAlert(id: string): Promise<Alert | null> {
-    const alert = await AlertModel.findById(id).lean();
-    return alert ? this.transformAlert(alert) : null;
+    return this.alerts.get(id) || null;
   }
 
   async updateAlert(id: string, updates: Partial<Alert>): Promise<Alert | null> {
-    const alert = await AlertModel.findByIdAndUpdate(id, updates, { new: true }).lean();
-    return alert ? this.transformAlert(alert) : null;
+    const alert = this.alerts.get(id);
+    if (!alert) return null;
+    const updatedAlert = { ...alert, ...updates };
+    this.alerts.set(id, updatedAlert);
+    return updatedAlert;
   }
 
   async deleteAlert(id: string): Promise<boolean> {
-    const result = await AlertModel.findByIdAndUpdate(id, { isActive: false }, { new: true });
-    return result !== null;
+    const alert = this.alerts.get(id);
+    if (!alert) return false;
+    alert.isActive = false;
+    this.alerts.set(id, alert);
+    return true;
   }
 
   async getAlertsByUser(userId: string): Promise<Alert[]> {
-    const alerts = await AlertModel.find({ createdBy: userId })
-      .sort({ createdAt: -1 })
-      .lean();
-    return alerts.map(alert => this.transformAlert(alert));
-  }
-
-  private transformAlert(alert: any): Alert {
-    return {
-      ...alert,
-      id: alert._id.toString(),
-      createdBy: alert.createdBy.toString(),
-    };
+    const userAlerts: Alert[] = [];
+    const alerts = Array.from(this.alerts.values());
+    for (const alert of alerts) {
+      if (alert.createdBy === userId) {
+        userAlerts.push(alert);
+      }
+    }
+    return userAlerts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();
