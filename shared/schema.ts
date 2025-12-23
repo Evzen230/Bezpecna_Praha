@@ -82,6 +82,10 @@ export const banUserSchema = z.object({
   reason: z.string().min(5, 'Důvod banování musí mít alespoň 5 znaků'),
 });
 
+export const changeUserRoleSchema = z.object({
+  role: z.enum(['admin', 'user'], { message: 'Role musí být admin nebo user' }),
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type LoginUser = z.infer<typeof loginSchema>;
@@ -90,6 +94,7 @@ export type RequestPasswordReset = z.infer<typeof requestPasswordResetSchema>;
 export type ResetPassword = z.infer<typeof resetPasswordSchema>;
 export type InsertAlert = z.infer<typeof insertAlertSchema>;
 export type BanUser = z.infer<typeof banUserSchema>;
+export type ChangeUserRole = z.infer<typeof changeUserRoleSchema>;
 
 // Legacy aliases for compatibility
 export type IUser = User;

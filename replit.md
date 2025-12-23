@@ -44,17 +44,33 @@ Current decision: Build game-focused city management system with custom coordina
 
 ## Admin Features
 
+### Admin Panel Interface
+- **Location**: `/admin` - accessible only to admin users
+- **Admin Link**: Shows in header navigation only for logged-in admins
+- **User Management Table**: Shows all users with their current role and status
+- **Real-time Updates**: User list updates automatically after any action
+
 ### User Moderation
-- **Ban Users**: Admins can ban users with a reason via `/api/admin/ban/:userId`
-- **Unban Users**: Admins can unban users via `/api/admin/unban/:userId`
-- **User List**: View all users and their status via `/api/admin/users`
-- Ban reasons displayed to banned users on login attempt
+- **Change User Role**: Admin dropdown to switch users between 'admin' and 'user' roles
+- **Ban Users**: Click "Blokovat" button, enter reason (min 5 chars)
+- **Unban Users**: Click "Odblokovat" to remove ban status
+- **Ban reasons** displayed to banned users on login attempt
+- **API Endpoints**:
+  - `POST /api/admin/ban/:userId` - Ban user with reason
+  - `POST /api/admin/unban/:userId` - Unban user
+  - `PATCH /api/admin/users/:userId/role` - Change user role
+  - `GET /api/admin/users` - Get all users (admin only)
 
 ### Alert Management
 - Admins can create, edit, and delete alerts
 - Full control over alert categories, severity levels, and positions
 - Can modify alerts created by other users
 - Regular users can only edit their own alerts
+
+### Storage
+- **In-Memory Database**: Uses MemStorage (JavaScript-based, secure)
+- **No External DB Needed**: All data persists during session in application memory
+- **Easy to Modify**: Change roles, ban/unban users in real-time from admin panel
 
 ## Key Components
 

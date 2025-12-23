@@ -3,7 +3,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertAlertSchema, banUserSchema } from "@shared/schema";
+import { insertAlertSchema, banUserSchema, changeUserRoleSchema } from "@shared/schema";
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
@@ -185,6 +185,32 @@ export function registerRoutes(app: Express): Server {
       res.json(safeUsers);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Change user role (admin only)
+  app.patch("/api/admin/users/:userId/role", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Nepřihlášen" });
+    }
+
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ message: "Nemáte oprávnění" });
+    }
+
+    try {
+      const { role } = changeUserRoleSchema.parse(req.body);
+      const userId = req.params.userId;
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Uživatel nebyl nalezen" });
+      }
+
+      await storage.changeUserRole(userId, role);
+      res.json({ message: `Role uživatele ${user.username} byla změněna na ${role}.` });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
     }
   });
 

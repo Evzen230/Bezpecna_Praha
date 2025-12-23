@@ -16,6 +16,7 @@ export interface IStorage {
   resetPassword(emailOrUsername: string, resetCode: string, newPassword: string): Promise<boolean>;
   banUser(userId: string, reason: string): Promise<boolean>;
   unbanUser(userId: string): Promise<boolean>;
+  changeUserRole(userId: string, role: 'admin' | 'user'): Promise<boolean>;
   getAllUsers(): Promise<User[]>;
 
   createAlert(alert: InsertAlert & { createdBy: string }): Promise<Alert>;
@@ -227,6 +228,14 @@ export class MemStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return Array.from(this.users.values());
+  }
+
+  async changeUserRole(userId: string, role: 'admin' | 'user'): Promise<boolean> {
+    const user = this.users.get(userId);
+    if (!user) return false;
+    user.role = role;
+    this.users.set(userId, user);
+    return true;
   }
 }
 
