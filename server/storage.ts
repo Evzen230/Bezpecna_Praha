@@ -2,8 +2,32 @@ import { type User, type InsertUser, type Alert, type InsertAlert } from "@share
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import { nanoid } from "nanoid";
+import { readFileSync, writeFileSync } from "fs";
+import { join } from "path";
 
 const MemoryStore = createMemoryStore(session);
+
+// Load data from file
+function loadDataFromFile() {
+  const dataPath = join(process.cwd(), "data.json");
+  try {
+    const data = JSON.parse(readFileSync(dataPath, "utf-8"));
+    return data;
+  } catch (error) {
+    console.log("[Storage] data.json not found, starting with empty database");
+    return { users: [], alerts: [] };
+  }
+}
+
+// Save data to file
+function saveDataToFile(data: any) {
+  const dataPath = join(process.cwd(), "data.json");
+  try {
+    writeFileSync(dataPath, JSON.stringify(data, null, 2), "utf-8");
+  } catch (error) {
+    console.error("[Storage] Failed to save data.json:", error);
+  }
+}
 
 export interface IStorage {
   getUser(id: string): Promise<User | null>;
@@ -43,6 +67,29 @@ export class MemStorage implements IStorage {
     });
     this.users = new Map();
     this.alerts = new Map();
+
+    // Load data from file on startup
+    const data = loadDataFromFile();
+    if (data.users && data.users.length > 0) {
+      data.users.forEach((user: any) => {
+        this.users.set(user.id, {
+          ...user,
+          createdAt: new Date(user.createdAt),
+          bannedAt: user.bannedAt ? new Date(user.bannedAt) : undefined,
+        });
+      });
+      console.log(`[Storage] Loaded ${data.users.length} users from data.json`);
+    }
+    if (data.alerts && data.alerts.length > 0) {
+      data.alerts.forEach((alert: any) => {
+        this.alerts.set(alert.id, {
+          ...alert,
+          createdAt: new Date(alert.createdAt),
+          expiresAt: alert.expiresAt ? new Date(alert.expiresAt) : null,
+        });
+      });
+      console.log(`[Storage] Loaded ${data.alerts.length} alerts from data.json`);
+    }
   }
 
   async getUser(id: string): Promise<User | null> {
@@ -250,7 +297,16 @@ export class MemStorage implements IStorage {
   async clearAllData(): Promise<boolean> {
     this.users.clear();
     this.alerts.clear();
+    saveDataToFile({ users: [], alerts: [] });
     return true;
+  }
+
+  async syncToFile(): Promise<void> {
+    const data = {
+      users: Array.from(this.users.values()),
+      alerts: Array.from(this.alerts.values()),
+    };
+    saveDataToFile(data);
   }
 }
 
