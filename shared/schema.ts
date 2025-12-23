@@ -11,6 +11,9 @@ export interface User {
   verificationCode?: string;
   acceptedTerms: boolean;
   acceptedPrivacy: boolean;
+  isBanned: boolean;
+  banReason?: string;
+  bannedAt?: Date;
   createdAt: Date;
 }
 
@@ -75,6 +78,10 @@ export const insertAlertSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
+export const banUserSchema = z.object({
+  reason: z.string().min(5, 'Důvod banování musí mít alespoň 5 znaků'),
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type LoginUser = z.infer<typeof loginSchema>;
@@ -82,6 +89,7 @@ export type VerifyEmail = z.infer<typeof verifyEmailSchema>;
 export type RequestPasswordReset = z.infer<typeof requestPasswordResetSchema>;
 export type ResetPassword = z.infer<typeof resetPasswordSchema>;
 export type InsertAlert = z.infer<typeof insertAlertSchema>;
+export type BanUser = z.infer<typeof banUserSchema>;
 
 // Legacy aliases for compatibility
 export type IUser = User;

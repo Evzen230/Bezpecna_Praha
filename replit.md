@@ -42,13 +42,30 @@ Current decision: Build game-focused city management system with custom coordina
 - **Schema**: Two main tables - users and alerts with proper relations
 - **Migration**: Drizzle Kit for database migrations
 
+## Admin Features
+
+### User Moderation
+- **Ban Users**: Admins can ban users with a reason via `/api/admin/ban/:userId`
+- **Unban Users**: Admins can unban users via `/api/admin/unban/:userId`
+- **User List**: View all users and their status via `/api/admin/users`
+- Ban reasons displayed to banned users on login attempt
+
+### Alert Management
+- Admins can create, edit, and delete alerts
+- Full control over alert categories, severity levels, and positions
+- Can modify alerts created by other users
+- Regular users can only edit their own alerts
+
 ## Key Components
 
 ### Authentication System
 - Session-based authentication with secure password hashing
 - Protected routes requiring authentication for admin functions
 - User registration and login functionality
-- Admin privileges for alert management
+- Two account types: **admin** and **user**
+- Admin privileges for alert management and user moderation
+- User ban system with ban reasons
+- Banned users cannot login (error message shows ban reason)
 
 ### Alert Management System
 - CRUD operations for emergency alerts

@@ -78,6 +78,9 @@ export function setupAuth(app: Express) {
           if (!user.emailVerified) {
             return done(null, false, { message: "Prosím ověřte svou e-mailovou adresu." });
           }
+          if (user.isBanned) {
+            return done(null, false, { message: `Váš účet byl zablokován. Důvod: ${user.banReason || "neuvedeno"}` });
+          }
           const isMatch = await comparePasswords(password, user.password);
           if (!isMatch) {
             return done(null, false, { message: "Nesprávný e-mail/uživatelské jméno nebo heslo." });

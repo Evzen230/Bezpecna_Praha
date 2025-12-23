@@ -12,8 +12,11 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User | null>;
   verifyUserEmail(email: string, verificationCode: string): Promise<boolean>;
-  requestPasswordReset(emailOrUsername: string): Promise<{ resetCode: string } | null>;
+  requestPasswordReset(emailOrUsername: string): Promise<{ resetCode: string; email: string } | null>;
   resetPassword(emailOrUsername: string, resetCode: string, newPassword: string): Promise<boolean>;
+  banUser(userId: string, reason: string): Promise<boolean>;
+  unbanUser(userId: string): Promise<boolean>;
+  getAllUsers(): Promise<User[]>;
 
   createAlert(alert: InsertAlert & { createdBy: string }): Promise<Alert>;
   getActiveAlerts(): Promise<Alert[]>;
@@ -76,6 +79,7 @@ export class MemStorage implements IStorage {
       verificationCode,
       acceptedTerms: insertUser.acceptedTerms,
       acceptedPrivacy: insertUser.acceptedPrivacy,
+      isBanned: false,
       createdAt: new Date()
     };
     this.users.set(id, user);
@@ -199,6 +203,30 @@ export class MemStorage implements IStorage {
       }
     }
     return userAlerts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async banUser(userId: string, reason: string): Promise<boolean> {
+    const user = this.users.get(userId);
+    if (!user) return false;
+    user.isBanned = true;
+    user.banReason = reason;
+    user.bannedAt = new Date();
+    this.users.set(userId, user);
+    return true;
+  }
+
+  async unbanUser(userId: string): Promise<boolean> {
+    const user = this.users.get(userId);
+    if (!user) return false;
+    user.isBanned = false;
+    user.banReason = undefined;
+    user.bannedAt = undefined;
+    this.users.set(userId, user);
+    return true;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
   }
 }
 
