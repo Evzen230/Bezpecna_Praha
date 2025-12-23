@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, AlertTriangle, Users, MapPin } from "lucide-react";
 import { insertUserSchema, loginSchema } from "@shared/schema";
 import { useForm } from "react-hook-form";
@@ -15,17 +16,22 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
-  const { user, loginMutation, registerMutation, verifyEmailMutation } = useAuth();
+  const { user, loginMutation, registerMutation, verifyEmailMutation, requestPasswordResetMutation, resetPasswordMutation } = useAuth();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("login");
-  const [pendingVerification, setPendingVerification] = useState<{ email: string } | null>(null);
+  const [pendingVerification, setPendingVerification] = useState<{ email: string; verificationCode: string } | null>(null);
   const [verificationCode, setVerificationCode] = useState("");
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [resetEmailOrUsername, setResetEmailOrUsername] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [resetCodeReceived, setResetCodeReceived] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
   const { toast } = useToast();
 
   const loginForm = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      emailOrUsername: "",
       password: "",
     },
   });
@@ -64,7 +70,10 @@ export default function AuthPage() {
           title: "Registrace úspěšná",
           description: "Zkontrolujte svou e-mailovou adresu pro ověřovací kód.",
         });
-        setPendingVerification({ email: data.email });
+        setPendingVerification({ 
+          email: data.email,
+          verificationCode: response.verificationCode || ""
+        });
         registerForm.reset();
       },
     });
@@ -96,6 +105,58 @@ export default function AuthPage() {
     );
   };
 
+  const onRequestPasswordReset = () => {
+    if (!resetEmailOrUsername) {
+      toast({
+        title: "Chyba",
+        description: "Zadejte e-mail nebo uživatelské jméno.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    requestPasswordResetMutation.mutate(
+      { emailOrUsername: resetEmailOrUsername },
+      {
+        onSuccess: (response) => {
+          setResetCodeReceived(response.resetCode);
+          toast({
+            title: "Reset kód vygenerován",
+            description: "Reset kód je zobrazen níže.",
+          });
+        },
+      }
+    );
+  };
+
+  const onResetPassword = () => {
+    if (!resetCode || !newPassword) {
+      toast({
+        title: "Chyba",
+        description: "Zadejte reset kód a nové heslo.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    resetPasswordMutation.mutate(
+      { emailOrUsername: resetEmailOrUsername, resetCode, newPassword },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Heslo změněno",
+            description: "Nyní se můžete přihlásit novým heslem.",
+          });
+          setShowPasswordReset(false);
+          setResetEmailOrUsername("");
+          setResetCode("");
+          setResetCodeReceived(null);
+          setNewPassword("");
+        },
+      }
+    );
+  };
+
   if (pendingVerification) {
     return (
       <div className="min-h-screen flex">
@@ -116,6 +177,14 @@ export default function AuthPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {pendingVerification.verificationCode && (
+                  <Alert className="bg-blue-50 border-blue-200">
+                    <AlertTriangle className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-800">
+                      <strong>Váš ověřovací kód:</strong> <code className="font-mono font-bold text-lg">{pendingVerification.verificationCode}</code>
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <div>
                   <Label htmlFor="code">Ověřovací kód</Label>
                   <Input
@@ -164,6 +233,120 @@ export default function AuthPage() {
     );
   }
 
+  if (showPasswordReset) {
+    return (
+      <div className="min-h-screen flex">
+        <div className="flex-1 flex items-center justify-center p-8 bg-white">
+          <div className="w-full max-w-md space-y-6">
+            <div className="text-center">
+              <div className="flex items-center justify-center space-x-2 mb-4">
+                <Shield className="h-8 w-8 text-primary" />
+                <h1 className="text-2xl font-bold text-gray-900">CityAlert</h1>
+              </div>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Reset hesla</CardTitle>
+                <CardDescription>
+                  Zadejte e-mail nebo uživatelské jméno
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!resetCodeReceived ? (
+                  <>
+                    <div>
+                      <Label htmlFor="reset-email">E-mail nebo uživatelské jméno</Label>
+                      <Input
+                        id="reset-email"
+                        type="text"
+                        placeholder="vase@email.cz nebo uživatelské jméno"
+                        value={resetEmailOrUsername}
+                        onChange={(e) => setResetEmailOrUsername(e.target.value)}
+                        data-testid="input-reset-email"
+                      />
+                    </div>
+                    <Button
+                      onClick={onRequestPasswordReset}
+                      className="w-full"
+                      disabled={requestPasswordResetMutation.isPending}
+                      data-testid="button-request-reset"
+                    >
+                      {requestPasswordResetMutation.isPending ? "Generování..." : "Odeslat reset kód"}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Alert className="bg-blue-50 border-blue-200">
+                      <AlertTriangle className="h-4 w-4 text-blue-600" />
+                      <AlertDescription className="text-blue-800">
+                        <strong>Váš reset kód:</strong> <code className="font-mono font-bold text-lg">{resetCodeReceived}</code>
+                      </AlertDescription>
+                    </Alert>
+                    <div>
+                      <Label htmlFor="reset-code">Reset kód</Label>
+                      <Input
+                        id="reset-code"
+                        type="text"
+                        placeholder="Zadejte 6místný reset kód"
+                        value={resetCode}
+                        onChange={(e) => setResetCode(e.target.value.slice(0, 6))}
+                        maxLength={6}
+                        data-testid="input-reset-code"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="new-password">Nové heslo</Label>
+                      <Input
+                        id="new-password"
+                        type="password"
+                        placeholder="Zadejte nové heslo"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        data-testid="input-new-password"
+                      />
+                    </div>
+                    <Button
+                      onClick={onResetPassword}
+                      className="w-full"
+                      disabled={resetPasswordMutation.isPending || resetCode.length !== 6 || !newPassword}
+                      data-testid="button-reset-password"
+                    >
+                      {resetPasswordMutation.isPending ? "Resetování..." : "Resetovat heslo"}
+                    </Button>
+                  </>
+                )}
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setShowPasswordReset(false);
+                    setResetEmailOrUsername("");
+                    setResetCode("");
+                    setResetCodeReceived(null);
+                    setNewPassword("");
+                  }}
+                  data-testid="button-back-reset"
+                >
+                  Zpět
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        <div className="flex-1 bg-gradient-to-br from-primary to-blue-800 text-white p-8 flex items-center justify-center">
+          <div className="max-w-lg text-center space-y-6">
+            <h2 className="text-3xl font-bold">Zapomenuté heslo?</h2>
+            <p className="text-lg text-blue-100">
+              Zadejte svůj e-mail nebo uživatelské jméno a obdržíte reset kód.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex">
       <div className="flex-1 flex items-center justify-center p-8 bg-white">
@@ -187,7 +370,7 @@ export default function AuthPage() {
                 <CardHeader>
                   <CardTitle>Přihlášení</CardTitle>
                   <CardDescription>
-                    Přihlaste se se svým e-mailem a heslem
+                    Přihlaste se e-mailem, uživatelským jménem a heslem
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -195,14 +378,13 @@ export default function AuthPage() {
                     <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
                       <FormField
                         control={loginForm.control}
-                        name="email"
+                        name="emailOrUsername"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>E-mail</FormLabel>
+                            <FormLabel>E-mail nebo uživatelské jméno</FormLabel>
                             <FormControl>
                               <Input
-                                type="email"
-                                placeholder="vase@email.cz"
+                                placeholder="vase@email.cz nebo vaše_jméno"
                                 {...field}
                                 data-testid="input-login-email"
                               />
@@ -239,6 +421,14 @@ export default function AuthPage() {
                       </Button>
                     </form>
                   </Form>
+                  <Button
+                    variant="link"
+                    className="w-full mt-4"
+                    onClick={() => setShowPasswordReset(true)}
+                    data-testid="button-forgot-password"
+                  >
+                    Zapomenuté heslo?
+                  </Button>
                 </CardContent>
               </Card>
             </TabsContent>

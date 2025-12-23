@@ -8,9 +8,12 @@ const MemoryStore = createMemoryStore(session);
 export interface IStorage {
   getUser(id: string): Promise<User | null>;
   getUserByEmail(email: string): Promise<User | null>;
+  getUserByUsername(username: string): Promise<User | null>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User | null>;
   verifyUserEmail(email: string, verificationCode: string): Promise<boolean>;
+  requestPasswordReset(emailOrUsername: string): Promise<{ resetCode: string } | null>;
+  resetPassword(emailOrUsername: string, resetCode: string, newPassword: string): Promise<boolean>;
 
   createAlert(alert: InsertAlert & { createdBy: string }): Promise<Alert>;
   getActiveAlerts(): Promise<Alert[]>;
@@ -26,6 +29,7 @@ export class MemStorage implements IStorage {
   sessionStore: session.Store;
   private users: Map<string, User>;
   private alerts: Map<string, Alert>;
+  private resetCodes: Map<string, { code: string; expiresAt: number }> = new Map();
 
   constructor() {
     this.sessionStore = new MemoryStore({
@@ -43,6 +47,16 @@ export class MemStorage implements IStorage {
     const users = Array.from(this.users.values());
     for (const user of users) {
       if (user.email === email) {
+        return user;
+      }
+    }
+    return null;
+  }
+
+  async getUserByUsername(username: string): Promise<User | null> {
+    const users = Array.from(this.users.values());
+    for (const user of users) {
+      if (user.username === username) {
         return user;
       }
     }
@@ -84,6 +98,36 @@ export class MemStorage implements IStorage {
     user.emailVerified = true;
     user.verificationCode = undefined;
     this.users.set(user.id, user);
+    return true;
+  }
+
+  async requestPasswordReset(emailOrUsername: string): Promise<{ resetCode: string } | null> {
+    let user = await this.getUserByEmail(emailOrUsername);
+    if (!user) {
+      user = await this.getUserByUsername(emailOrUsername);
+    }
+    if (!user) return null;
+
+    const resetCode = Math.random().toString().slice(2, 8);
+    this.resetCodes.set(emailOrUsername, { code: resetCode, expiresAt: Date.now() + 15 * 60000 });
+    return { resetCode };
+  }
+
+  async resetPassword(emailOrUsername: string, resetCode: string, newPassword: string): Promise<boolean> {
+    const resetData = this.resetCodes.get(emailOrUsername);
+    if (!resetData || resetData.code !== resetCode || resetData.expiresAt < Date.now()) {
+      return false;
+    }
+
+    let user = await this.getUserByEmail(emailOrUsername);
+    if (!user) {
+      user = await this.getUserByUsername(emailOrUsername);
+    }
+    if (!user) return false;
+
+    user.password = newPassword;
+    this.users.set(user.id, user);
+    this.resetCodes.delete(emailOrUsername);
     return true;
   }
 

@@ -16,6 +16,8 @@ type AuthContextType = {
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<any, Error, InsertUser>;
   verifyEmailMutation: UseMutationResult<any, Error, VerifyEmail>;
+  requestPasswordResetMutation: UseMutationResult<any, Error, any>;
+  resetPasswordMutation: UseMutationResult<any, Error, any>;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -75,6 +77,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const requestPasswordResetMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", "/api/request-password-reset", data);
+      return await res.json();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Chyba",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", "/api/reset-password", data);
+      return await res.json();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Resetování hesla selhalo",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("POST", "/api/logout");
@@ -101,6 +131,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logoutMutation,
         registerMutation,
         verifyEmailMutation,
+        requestPasswordResetMutation,
+        resetPasswordMutation,
       }}
     >
       {children}

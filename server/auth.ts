@@ -64,19 +64,22 @@ export function setupAuth(app: Express) {
 
   passport.use(
     new LocalStrategy(
-      { usernameField: "email" },
-      async (email, password, done) => {
+      { usernameField: "emailOrUsername" },
+      async (emailOrUsername, password, done) => {
         try {
-          const user = await storage.getUserByEmail(email);
+          let user = await storage.getUserByEmail(emailOrUsername);
           if (!user) {
-            return done(null, false, { message: "Nesprávný e-mail nebo heslo." });
+            user = await storage.getUserByUsername(emailOrUsername);
+          }
+          if (!user) {
+            return done(null, false, { message: "Nesprávný e-mail/uživatelské jméno nebo heslo." });
           }
           if (!user.emailVerified) {
             return done(null, false, { message: "Prosím ověřte svou e-mailovou adresu." });
           }
           const isMatch = await comparePasswords(password, user.password);
           if (!isMatch) {
-            return done(null, false, { message: "Nesprávný e-mail nebo heslo." });
+            return done(null, false, { message: "Nesprávný e-mail/uživatelské jméno nebo heslo." });
           }
           return done(null, user);
         } catch (err) {
@@ -154,6 +157,53 @@ export function setupAuth(app: Express) {
       }
 
       return res.json({ message: "E-mail úspěšně ověřen. Nyní se můžete přihlásit." });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/request-password-reset", async (req, res, next) => {
+    try {
+      const { emailOrUsername } = req.body;
+
+      if (!emailOrUsername) {
+        return res.status(400).json({ message: "E-mail nebo uživatelské jméno je povinné" });
+      }
+
+      const result = await storage.requestPasswordReset(emailOrUsername);
+      if (!result) {
+        return res.status(404).json({ message: "Uživatel nebyl nalezen" });
+      }
+
+      return res.json({
+        message: "Reset kód byl vygenerován. V produkci by byl odeslán e-mailem.",
+        resetCode: result.resetCode,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/reset-password", async (req, res, next) => {
+    try {
+      const { emailOrUsername, resetCode, newPassword } = req.body;
+
+      if (!emailOrUsername || !resetCode || !newPassword) {
+        return res.status(400).json({ message: "Všechna pole jsou povinná" });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Heslo musí mít alespoň 6 znaků" });
+      }
+
+      const hashedPassword = await hashPassword(newPassword);
+      const success = await storage.resetPassword(emailOrUsername, resetCode, hashedPassword);
+
+      if (!success) {
+        return res.status(400).json({ message: "Neplatný nebo vypršelý reset kód" });
+      }
+
+      return res.json({ message: "Heslo bylo úspěšně změněno. Nyní se můžete přihlásit novým heslem." });
     } catch (error) {
       next(error);
     }

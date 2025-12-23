@@ -42,13 +42,23 @@ export const insertUserSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: z.string().email('Neplatná e-mailová adresa'),
+  emailOrUsername: z.string().min(1, 'E-mail nebo uživatelské jméno je povinné'),
   password: z.string().min(1, 'Heslo je povinné'),
 });
 
 export const verifyEmailSchema = z.object({
   email: z.string().email('Neplatná e-mailová adresa'),
   verificationCode: z.string().min(6, 'Ověřovací kód musí mít 6 znaků'),
+});
+
+export const requestPasswordResetSchema = z.object({
+  emailOrUsername: z.string().min(1, 'E-mail nebo uživatelské jméno je povinné'),
+});
+
+export const resetPasswordSchema = z.object({
+  emailOrUsername: z.string().min(1, 'E-mail nebo uživatelské jméno je povinné'),
+  resetCode: z.string().min(6, 'Reset kód musí mít 6 znaků'),
+  newPassword: z.string().min(6, 'Heslo musí mít alespoň 6 znaků'),
 });
 
 export const insertAlertSchema = z.object({
@@ -69,6 +79,8 @@ export const insertAlertSchema = z.object({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type LoginUser = z.infer<typeof loginSchema>;
 export type VerifyEmail = z.infer<typeof verifyEmailSchema>;
+export type RequestPasswordReset = z.infer<typeof requestPasswordResetSchema>;
+export type ResetPassword = z.infer<typeof resetPasswordSchema>;
 export type InsertAlert = z.infer<typeof insertAlertSchema>;
 
 // Legacy aliases for compatibility
