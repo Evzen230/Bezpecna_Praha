@@ -133,6 +133,7 @@ export class MemStorage implements IStorage {
       createdAt: new Date()
     };
     this.users.set(id, user);
+    await this.syncToFile();
     return user;
   }
 
@@ -141,6 +142,7 @@ export class MemStorage implements IStorage {
     if (!user) return null;
     const updatedUser = { ...user, ...updates };
     this.users.set(id, updatedUser);
+    await this.syncToFile();
     return updatedUser;
   }
 
@@ -152,6 +154,7 @@ export class MemStorage implements IStorage {
     user.emailVerified = true;
     user.verificationCode = undefined;
     this.users.set(user.id, user);
+    await this.syncToFile();
     return true;
   }
 
@@ -182,6 +185,7 @@ export class MemStorage implements IStorage {
     user.password = newPassword;
     this.users.set(user.id, user);
     this.resetCodes.delete(emailOrUsername);
+    await this.syncToFile();
     return true;
   }
 
@@ -209,6 +213,7 @@ export class MemStorage implements IStorage {
       createdAt: now
     };
     this.alerts.set(id, alert);
+    await this.syncToFile();
     return alert;
   }
 
@@ -233,6 +238,7 @@ export class MemStorage implements IStorage {
     if (!alert) return null;
     const updatedAlert = { ...alert, ...updates };
     this.alerts.set(id, updatedAlert);
+    await this.syncToFile();
     return updatedAlert;
   }
 
@@ -241,6 +247,7 @@ export class MemStorage implements IStorage {
     if (!alert) return false;
     alert.isActive = false;
     this.alerts.set(id, alert);
+    await this.syncToFile();
     return true;
   }
 
@@ -262,6 +269,7 @@ export class MemStorage implements IStorage {
     user.banReason = reason;
     user.bannedAt = new Date();
     this.users.set(userId, user);
+    await this.syncToFile();
     return true;
   }
 
@@ -272,6 +280,7 @@ export class MemStorage implements IStorage {
     user.banReason = undefined;
     user.bannedAt = undefined;
     this.users.set(userId, user);
+    await this.syncToFile();
     return true;
   }
 
@@ -284,6 +293,7 @@ export class MemStorage implements IStorage {
     if (!user) return false;
     user.role = role;
     this.users.set(userId, user);
+    await this.syncToFile();
     return true;
   }
 
