@@ -350,9 +350,30 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
                 opacity="0.9"
               />
             ))}
+
+            {/* Alert Markers IN SVG - coordinates are absolute to viewBox, independent of window size */}
+            {filteredAlerts.map((alert) => (
+              <g
+                key={alert.id}
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAlertClick(alert);
+                }}
+              >
+                {/* Clickable circle at marker position */}
+                <circle
+                  cx={alert.xPosition}
+                  cy={alert.yPosition}
+                  r="3"
+                  fill="transparent"
+                  className="hover:opacity-50"
+                />
+              </g>
+            ))}
           </svg>
 
-          {/* Alert Markers - INSIDE transformed div so they zoom with map */}
+          {/* Alert Marker HTML Tooltips - rendered with fixed positioning relative to SVG coordinates */}
           {filteredAlerts.map((alert) => (
             <AlertMarker
               key={alert.id}

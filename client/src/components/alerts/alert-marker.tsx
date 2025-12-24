@@ -80,6 +80,9 @@ export default function AlertMarker({ alert, onClick, scale = 1 }: AlertMarkerPr
     <div
       className="absolute cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10"
       style={{
+        // Position relative to image coordinates (0-100%), then scale
+        // top and left are in percentages of parent which contains the image
+        // The percentage values (0-100%) directly map to alert.xPosition and alert.yPosition
         top: `${alert.yPosition}%`,
         left: `${alert.xPosition}%`,
         zIndex: 10,
@@ -90,6 +93,7 @@ export default function AlertMarker({ alert, onClick, scale = 1 }: AlertMarkerPr
         e.stopPropagation();
         onClick();
       }}
+      data-testid={`alert-marker-${alert.id}`}
     >
       <div 
         className={`${colorClass} text-white rounded-lg shadow-lg border-2 border-white relative`}
