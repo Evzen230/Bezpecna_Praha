@@ -78,14 +78,13 @@ export default function AlertMarker({ alert, onClick, scale = 1 }: AlertMarkerPr
   
   return (
     <div
-      className="fixed cursor-pointer transition-all duration-200 hover:scale-110 hover:z-50"
+      className="absolute cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10"
       style={{
         top: `${alert.yPosition}%`,
         left: `${alert.xPosition}%`,
-        zIndex: 20,
+        zIndex: 10,
         transform: `translate(-50%, -50%) scale(${markerScale})`,
         transformOrigin: 'center center',
-        pointerEvents: 'auto',
       }}
       onClick={(e) => {
         e.stopPropagation();

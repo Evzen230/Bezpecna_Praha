@@ -352,17 +352,16 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
             ))}
           </svg>
 
+          {/* Alert Markers - INSIDE transformed div so they zoom with map */}
+          {filteredAlerts.map((alert) => (
+            <AlertMarker
+              key={alert.id}
+              alert={alert}
+              onClick={() => handleAlertClick(alert)}
+              scale={transform.scale}
+            />
+          ))}
         </div>
-
-        {/* Alert Markers - OUTSIDE transformed div for proper positioning */}
-        {filteredAlerts.map((alert) => (
-          <AlertMarker
-            key={alert.id}
-            alert={alert}
-            onClick={() => handleAlertClick(alert)}
-            scale={transform.scale}
-          />
-        ))}
       </div>
 
       {/* Alert Detail Modal */}
