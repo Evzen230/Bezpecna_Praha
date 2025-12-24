@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Ban, CheckCircle } from "lucide-react";
+import { Shield, Ban, CheckCircle, ArrowLeft } from "lucide-react";
 
 interface UserItem {
   id: string;
@@ -86,6 +86,17 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/")}
+          className="mb-4"
+          data-testid="button-back-admin"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Zpět na mapu
+        </Button>
+        
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">

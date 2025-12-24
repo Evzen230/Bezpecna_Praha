@@ -12,11 +12,11 @@ export default function TermsPage() {
         <Button
           variant="ghost"
           className="mb-6"
-          onClick={() => setLocation("/auth")}
+          onClick={() => setLocation("/")}
           data-testid="button-back-terms"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Zpět
+          Zpět na mapu
         </Button>
 
         <Card>

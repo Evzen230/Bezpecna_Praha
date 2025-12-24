@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, AlertTriangle, Users, MapPin } from "lucide-react";
+import { Shield, AlertTriangle, Users, MapPin, ArrowLeft } from "lucide-react";
 import { insertUserSchema, loginSchema } from "@shared/schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -351,6 +351,17 @@ export default function AuthPage() {
     <div className="min-h-screen flex">
       <div className="flex-1 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md space-y-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation("/")}
+            className="mb-2"
+            data-testid="button-back-auth"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Zpět na mapu
+          </Button>
+
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-4">
               <Shield className="h-8 w-8 text-primary" />
