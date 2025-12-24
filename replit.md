@@ -45,10 +45,11 @@ Current decision: Build game-focused city management system with custom coordina
 ## User Experience Features
 
 ### Alert Creation
-- **Toggle Button**: "Administrace" button on map to open/close alert creation panel
-- **Quick Close**: X button to close panel without creating alert
+- **Plus Button**: Bottom-right corner of map for logged-in users
+- **Crosshair Cursor**: When creating alert, cursor changes to crosshair
+- **One-Click Creation**: Click plus → map becomes active → click anywhere on map to create alert
 - **Free Navigation**: Users can explore map without being forced into alert creation
-- **New Alert Button**: "Nové upozornění" in panel to start creating alert
+- **Auto-Reset**: Mode automatically disables after alert form opens
 
 ### Ban Detection & Immediate Action
 - **Real-time Ban Check**: System monitors if user becomes banned
@@ -59,6 +60,11 @@ Current decision: Build game-focused city management system with custom coordina
 ### Map Navigation
 - **Go Back Buttons**: All pages (auth, admin, terms, privacy) have "Zpět na mapu" (Back to Map) buttons
 - **Easy Return**: Users can quickly return to the main map from any page
+
+### Alert Positioning
+- **Responsive Markers**: Alert markers use fixed positioning to stay in correct place during viewport changes
+- **Zoom-Aware**: Markers scale responsively with map zoom level but maintain correct coordinates
+- **No Position Shift**: Alerts maintain position when window is resized or zoomed
 
 ## Admin Features & Security
 
