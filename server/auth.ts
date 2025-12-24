@@ -118,9 +118,14 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Musíte souhlasit s podmínkami a zásadami" });
       }
 
-      const existingUser = await storage.getUserByEmail(email);
-      if (existingUser) {
+      const existingUserByEmail = await storage.getUserByEmail(email);
+      if (existingUserByEmail) {
         return res.status(400).json({ message: "E-mail je již registrován" });
+      }
+
+      const existingUserByUsername = await storage.getUserByUsername(username);
+      if (existingUserByUsername) {
+        return res.status(400).json({ message: "Uživatelské jméno je již registrováno" });
       }
 
       const hashedPassword = await hashPassword(password);
@@ -189,7 +194,6 @@ export function setupAuth(app: Express) {
 
       return res.json({
         message: "Pokud účet existuje, reset kód byl odeslán na e-mail.",
-        resetCode: result.resetCode,
       });
     } catch (error) {
       next(error);

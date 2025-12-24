@@ -42,19 +42,21 @@ Current decision: Build game-focused city management system with custom coordina
 - **Schema**: Two main tables - users and alerts with proper relations
 - **Migration**: Drizzle Kit for database migrations
 
-## Admin Features
+## Admin Features & Security
 
 ### Admin Panel Interface
-- **Location**: `/admin` - accessible only to admin users
+- **Location**: `/admin` - accessible only to admin users (redirects others to home)
 - **Admin Link**: Shows in header navigation only for logged-in admins
 - **User Management Table**: Shows all users with their current role and status
 - **Real-time Updates**: User list updates automatically after any action
+- **Database Debug Section**: View and manage all data in JSON format
 
-### User Moderation
+### User Management & Security
 - **Change User Role**: Admin dropdown to switch users between 'admin' and 'user' roles
 - **Ban Users**: Click "Blokovat" button, enter reason (min 5 chars)
 - **Unban Users**: Click "Odblokovat" to remove ban status
 - **Ban reasons** displayed to banned users on login attempt
+- **Duplicate Prevention**: Registration validates both email AND username - no duplicates allowed
 - **API Endpoints**:
   - `POST /api/admin/ban/:userId` - Ban user with reason
   - `POST /api/admin/unban/:userId` - Unban user
@@ -62,15 +64,24 @@ Current decision: Build game-focused city management system with custom coordina
   - `GET /api/admin/users` - Get all users (admin only)
 
 ### Alert Management
-- Admins can create, edit, and delete alerts
-- Full control over alert categories, severity levels, and positions
-- Can modify alerts created by other users
-- Regular users can only edit their own alerts
+- **Admin Control**: Admins can create, edit, and delete ALL alerts (not just their own)
+- **User Control**: Regular users can only create and edit their own alerts
+- **Alert Categories**: road, criminal, emergency, other
+- **Severity Levels**: critical, high, medium, low
+- **Auto-Expiration**: Set expiration minutes (0 = no expiration)
+- **API Endpoints**:
+  - `POST /api/alerts` - Create new alert
+  - `PUT /api/alerts/:id` - Edit alert (creator or admin only)
+  - `DELETE /api/alerts/:id` - Delete alert (creator or admin only)
+  - `GET /api/alerts` - Get all active alerts
 
-### Storage
-- **In-Memory Database**: Uses MemStorage (JavaScript-based, secure)
-- **No External DB Needed**: All data persists during session in application memory
-- **Easy to Modify**: Change roles, ban/unban users in real-time from admin panel
+### Data & Security
+- **File-Based Storage**: Uses `data.json` for persistent storage
+- **Automatic Sync**: All changes (user creation, bans, alerts) auto-save to data.json
+- **Password Encryption**: All passwords hashed with scrypt before storage
+- **Email Verification**: Users must verify email before login
+- **Reset Code Protection**: Password reset codes sent via email only (not displayed in UI)
+- **In-Memory Database**: MemStorage with automatic file persistence
 
 ## Key Components
 
