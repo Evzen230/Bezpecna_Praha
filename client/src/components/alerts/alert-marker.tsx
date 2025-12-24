@@ -26,6 +26,7 @@ interface AlertMarkerProps {
   alert: Alert;
   onClick: () => void;
   scale?: number;
+  isInSVG?: boolean;
 }
 
 export const availableIcons = {
@@ -64,7 +65,7 @@ const severityColors = {
   low: "bg-green-500 border-green-600",
 };
 
-export default function AlertMarker({ alert, onClick, scale = 1 }: AlertMarkerProps) {
+export default function AlertMarker({ alert, onClick, scale = 1, isInSVG = false }: AlertMarkerProps) {
   // Use custom icon if specified, otherwise fall back to category default
   const customIcon = alert.icon ? availableIcons[alert.icon as keyof typeof availableIcons] : null;
   const Icon = customIcon || categoryIcons[alert.category as keyof typeof categoryIcons] || AlertTriangle;
@@ -76,19 +77,20 @@ export default function AlertMarker({ alert, onClick, scale = 1 }: AlertMarkerPr
   const fontSize = Math.max(8, Math.min(11, 12 * markerScale));
   const padding = Math.max(6, Math.min(10, 8 * markerScale));
   
+  // When in SVG, don't position - foreignObject handles positioning
+  const containerStyle = isInSVG ? {} : {
+    position: 'absolute' as const,
+    top: `${alert.yPosition}%`,
+    left: `${alert.xPosition}%`,
+    zIndex: 10,
+    transform: `translate(-50%, -50%) scale(${markerScale})`,
+    transformOrigin: 'center center',
+  };
+  
   return (
     <div
-      className="absolute cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10"
-      style={{
-        // Position relative to image coordinates (0-100%), then scale
-        // top and left are in percentages of parent which contains the image
-        // The percentage values (0-100%) directly map to alert.xPosition and alert.yPosition
-        top: `${alert.yPosition}%`,
-        left: `${alert.xPosition}%`,
-        zIndex: 10,
-        transform: `translate(-50%, -50%) scale(${markerScale})`,
-        transformOrigin: 'center center',
-      }}
+      className={`${!isInSVG ? 'absolute' : ''} cursor-pointer transition-all duration-200 hover:scale-110 ${!isInSVG ? 'hover:z-10' : ''}`}
+      style={containerStyle}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
