@@ -26,7 +26,7 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
   });
 
   const deleteAlertMutation = useMutation({
-    mutationFn: async (alertId: number) => {
+    mutationFn: async (alertId: string) => {
       await apiRequest("DELETE", `/api/alerts/${alertId}`);
     },
     onSuccess: () => {
@@ -51,7 +51,7 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
     setShowAlertForm(true);
   };
 
-  const handleDeleteAlert = (alertId: number) => {
+  const handleDeleteAlert = (alertId: string) => {
     if (confirm("Opravdu chcete smazat toto upozornění?")) {
       deleteAlertMutation.mutate(alertId);
     }
@@ -82,7 +82,7 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
         <CardHeader className="border-b border-gray-200">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Administrace</CardTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={onClose} data-testid="button-close-panel">
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -90,6 +90,14 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
 
         <CardContent className="p-4 space-y-4">
           {/* Add Alert Button */}
+          <Button
+            onClick={() => setShowAlertForm(true)}
+            className="w-full"
+            data-testid="button-create-alert"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nové upozornění
+          </Button>
 
           {/* Active Alerts Management */}
           <div>

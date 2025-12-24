@@ -42,6 +42,24 @@ Current decision: Build game-focused city management system with custom coordina
 - **Schema**: Two main tables - users and alerts with proper relations
 - **Migration**: Drizzle Kit for database migrations
 
+## User Experience Features
+
+### Alert Creation
+- **Toggle Button**: "Administrace" button on map to open/close alert creation panel
+- **Quick Close**: X button to close panel without creating alert
+- **Free Navigation**: Users can explore map without being forced into alert creation
+- **New Alert Button**: "Nové upozornění" in panel to start creating alert
+
+### Ban Detection & Immediate Action
+- **Real-time Ban Check**: System monitors if user becomes banned
+- **Instant Logout**: If user is banned while logged in, they are immediately logged out
+- **Clear Message**: User sees notification explaining ban reason
+- **No Delayed Detection**: Unlike before, ban is detected and applied instantly, not on next login
+
+### Map Navigation
+- **Go Back Buttons**: All pages (auth, admin, terms, privacy) have "Zpět na mapu" (Back to Map) buttons
+- **Easy Return**: Users can quickly return to the main map from any page
+
 ## Admin Features & Security
 
 ### Admin Panel Interface

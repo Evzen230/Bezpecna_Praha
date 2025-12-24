@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useEffect } from "react";
 import {
   useQuery,
   useMutation,
@@ -31,6 +31,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
+
+  // Check if user is banned and logout if they are
+  useEffect(() => {
+    if (user && (user as any).isBanned) {
+      toast({
+        title: "Účet zablokován",
+        description: `Váš účet byl zablokován. Důvod: ${(user as any).banReason || "neuvedeno"}`,
+        variant: "destructive",
+      });
+      // Logout immediately
+      queryClient.setQueryData(["/api/user"], null);
+    }
+  }, [user, toast]);
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginUser) => {
