@@ -9,16 +9,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Settings, LogOut, Filter, User } from "lucide-react";
+import { LogOut, Filter, User, Plus } from "lucide-react";
 import { useLocation } from "wouter";
 import InteractiveMap from "@/components/map/interactive-map";
-import AdminPanel from "@/components/admin/admin-panel";
 import AlertStats from "@/components/alerts/alert-stats";
 
 export default function HomePage() {
   const { user, logoutMutation } = useAuth();
   const [, setLocation] = useLocation();
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [isCreatingAlert, setIsCreatingAlert] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [severityFilter, setSeverityFilter] = useState("all");
 
@@ -85,27 +84,17 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Admin Controls */}
+            {/* User Controls */}
             <div className="flex items-center space-x-3">
               {user ? (
-                <>
-                  <Button
-                    variant="secondary"
-                    onClick={() => setShowAdminPanel(!showAdminPanel)}
-                    className="hidden sm:flex"
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Administrace
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleLogout}
-                    disabled={logoutMutation.isPending}
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                </>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  disabled={logoutMutation.isPending}
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
               ) : (
                 <Button
                   variant="outline"
@@ -127,19 +116,29 @@ export default function HomePage() {
           categoryFilter={categoryFilter}
           severityFilter={severityFilter}
           isAdmin={!!user}
+          isCreatingAlert={isCreatingAlert}
+          onCreatingChange={setIsCreatingAlert}
         />
 
         {/* Alert Statistics Panel */}
         <AlertStats />
 
-        {/* Admin Panel */}
-        {user && showAdminPanel && (
-          <AdminPanel onClose={() => setShowAdminPanel(false)} />
+        {/* Create Alert Button */}
+        {user && (
+          <Button
+            size="icon"
+            className="fixed bottom-6 right-6 z-30 rounded-full w-14 h-14 p-0 shadow-lg"
+            onClick={() => setIsCreatingAlert(!isCreatingAlert)}
+            data-testid="button-create-alert-map"
+            variant={isCreatingAlert ? "default" : "secondary"}
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
         )}
 
         {/* Mobile Filter Button */}
         <Button
-          className="md:hidden fixed bottom-20 right-4 z-40 rounded-full w-12 h-12 p-0"
+          className="md:hidden fixed bottom-24 right-6 z-30 rounded-full w-12 h-12 p-0"
           onClick={() => {
             /* TODO: Show mobile filter modal */
           }}

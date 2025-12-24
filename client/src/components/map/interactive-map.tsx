@@ -26,9 +26,11 @@ interface InteractiveMapProps {
   categoryFilter: string;
   severityFilter: string;
   isAdmin: boolean;
+  isCreatingAlert?: boolean;
+  onCreatingChange?: (isCreating: boolean) => void;
 }
 
-export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin }: InteractiveMapProps) {
+export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin, isCreatingAlert = false, onCreatingChange }: InteractiveMapProps) {
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [showAlertForm, setShowAlertForm] = useState(false);
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
@@ -61,6 +63,9 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
     // Don't process clicks during dragging
     if (isDragging) return;
 
+    // Don't process clicks if not in creating alert mode
+    if (!isCreatingAlert) return;
+
     const rect = mapRef.current?.getBoundingClientRect();
     if (!rect) return;
 
@@ -72,7 +77,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
     const clampedX = Math.max(0, Math.min(100, x));
     const clampedY = Math.max(0, Math.min(100, y));
 
-    console.log('Map clicked - isRouteDrawing:', isRouteDrawing, 'position:', { x: clampedX, y: clampedY });
+    console.log('Map clicked - creating alert:', isCreatingAlert, 'position:', { x: clampedX, y: clampedY });
 
     if (isRouteDrawing) {
       console.log('Route drawing - adding point:', { x: clampedX, y: clampedY });
@@ -88,7 +93,8 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
     console.log('Map clicked at:', { x: clampedX, y: clampedY });
     setPendingPosition({ x: clampedX, y: clampedY });
     setShowAlertForm(true);
-  }, [isAdmin, isDragging, transform, isRouteDrawing]);
+    onCreatingChange?.(false); // Turn off creating mode after alert form opens
+  }, [isAdmin, isDragging, transform, isRouteDrawing, isCreatingAlert, onCreatingChange]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     // Don't start dragging if we're in route drawing mode
@@ -222,9 +228,9 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
         >
           Reset View
         </Button>
-        {isAdmin && (
-          <div className="text-xs text-white bg-black/70 px-2 py-1 rounded">
-            Click to add alert
+        {isAdmin && isCreatingAlert && (
+          <div className="text-xs text-white bg-black/70 px-2 py-1 rounded animate-pulse">
+            Klikněte na mapu pro vytvoření upozornění
           </div>
         )}
       </div>
@@ -239,7 +245,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
         style={{ 
-          cursor: isDragging ? 'grabbing' : isRouteDrawing ? 'crosshair' : (isAdmin ? 'grab' : 'default'),
+          cursor: isDragging ? 'grabbing' : (isCreatingAlert ? 'crosshair' : (isAdmin ? 'grab' : 'default')),
           userSelect: 'none'
         }}
         onContextMenu={(e) => {
@@ -280,10 +286,10 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
           >
             {/* Existing alert routes */}
             {filteredAlerts.map((alert) => {
-              if (!alert.alternativeRoutes) return null;
+              if (!alert.alternativeRoute) return null;
               
               try {
-                const routes: DrawnRoute[] = JSON.parse(alert.alternativeRoutes);
+                const routes: DrawnRoute[] = JSON.parse(alert.alternativeRoute);
                 return routes.map((route) => (
                   <polyline
                     key={`${alert.id}-${route.id}`}
@@ -364,7 +370,7 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
           alert={selectedAlert}
           isOpen={!!selectedAlert}
           onClose={() => setSelectedAlert(null)}
-          onEdit={isAdmin ? handleEditAlert : undefined}
+          onEdit={isAdmin ? () => handleEditAlert(selectedAlert) : undefined}
         />
       )}
 
