@@ -5,15 +5,41 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { insertAlertSchema, banUserSchema, changeUserRoleSchema, containsBannedWord } from "@shared/schema";
 
-export function registerRoutes(app: Express): Server {
-  setupAuth(app);
-
-  // Spam protection (Rate limiting for alert creation)
+// Spam protection (Rate limiting for alert creation)
 const userLastAlertTime = new Map<string, number>();
 const ALERT_COOLDOWN_MS = 60000; // 1 minute cooldown between alerts for non-admins
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
+
+  // Get all active alerts
+  app.get("/api/alerts", async (_req, res) => {
+    try {
+      const alerts = await storage.getActiveAlerts();
+      res.json(alerts);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get all alerts for admin (including inactive)
+  app.get("/api/admin/alerts", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Nepřihlášen" });
+    }
+
+    const user = await storage.getUser(req.user!.id);
+    if (!user || user.role !== 'admin' || user.isBanned) {
+      return res.status(403).json({ message: "Nemáte oprávnění" });
+    }
+
+    try {
+      const alerts = await storage.getActiveAlerts();
+      res.json(alerts);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
 
   // Create new alert
   app.post("/api/alerts", async (req, res) => {
@@ -140,11 +166,6 @@ export function registerRoutes(app: Express): Server {
       }
 
       await storage.banUser(userId, reason);
-      
-      // Force logout by destroying sessions for this user
-      // Since we use memorystore, we can iterate over sessions if needed, 
-      // but a simpler way is to check ban status in deserializeUser
-      
       res.json({ message: `Uživatel ${user.username} byl zablokován.` });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
