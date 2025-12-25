@@ -286,70 +286,74 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
               isInSVG={false}
             />
           ))}
+          
+          {/* Game Map Coordinate Grid */}
+          <div className="absolute inset-0 pointer-events-none opacity-15 z-0" style={{
+            backgroundImage: `
+              linear-gradient(to right, rgba(100,150,200,0.4) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(100,150,200,0.4) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px'
+          }}></div>
+        </div>
+
+        {/* Overlays - Modal and Sidebar outside the map transform but inside the relative container */}
+        <div className="absolute inset-0 pointer-events-none z-30">
+          <div className="pointer-events-auto">
+            {/* Alert Detail Modal */}
+            {selectedAlert && (
+              <AlertDetailModal
+                alert={selectedAlert}
+                isOpen={!!selectedAlert}
+                onClose={() => setSelectedAlert(null)}
+                onEdit={isAdmin ? () => handleEditAlert(selectedAlert) : undefined}
+              />
+            )}
+
+            {/* Alert Form Sidebar */}
+            {isAdmin && (
+              <AlertFormSidebar
+                isOpen={showAlertForm}
+                onClose={() => {
+                  setShowAlertForm(false);
+                  setPendingPosition(null);
+                  setEditingAlert(null);
+                  setIsRouteDrawing(false);
+                  setCurrentRoute([]);
+                }}
+                initialPosition={pendingPosition}
+                editingAlert={editingAlert}
+                onAfterSubmit={() => {
+                  setShowAlertForm(false);
+                  setPendingPosition(null);
+                  setEditingAlert(null);
+                  setIsRouteDrawing(false);
+                  setCurrentRoute([]);
+                }}
+                onRouteDrawingChange={handleRouteDrawingChange}
+                onRoutesChange={handleRoutesChange}
+              />
+            )}
+
+            {/* Route Drawing Instructions */}
+            {isRouteDrawing && (
+              <div className="absolute bottom-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-20">
+                <div className="text-sm font-medium flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full border border-white" 
+                    style={{ backgroundColor: currentRouteColor }}
+                  />
+                  Kreslení alternativní trasy
+                </div>
+                <div className="text-xs opacity-90">Kliknutím přidejte body • Dvojklikem dokončete</div>
+                {currentRoute.length > 0 && (
+                  <div className="text-xs opacity-75">{currentRoute.length} bodů přidáno</div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Alert Detail Modal */}
-      {selectedAlert && (
-        <AlertDetailModal
-          alert={selectedAlert}
-          isOpen={!!selectedAlert}
-          onClose={() => setSelectedAlert(null)}
-          onEdit={isAdmin ? () => handleEditAlert(selectedAlert) : undefined}
-        />
-      )}
-
-      {/* Alert Form Sidebar */}
-      {isAdmin && (
-        <AlertFormSidebar
-          isOpen={showAlertForm}
-          onClose={() => {
-            setShowAlertForm(false);
-            setPendingPosition(null);
-            setEditingAlert(null);
-            setIsRouteDrawing(false);
-            setCurrentRoute([]);
-          }}
-          initialPosition={pendingPosition}
-          editingAlert={editingAlert}
-          onAfterSubmit={() => {
-            setShowAlertForm(false);
-            setPendingPosition(null);
-            setEditingAlert(null);
-            setIsRouteDrawing(false);
-            setCurrentRoute([]);
-            // Don't clear drawn routes here, let them persist for the form
-          }}
-          onRouteDrawingChange={handleRouteDrawingChange}
-          onRoutesChange={handleRoutesChange}
-        />
-      )}
-
-      {/* Route Drawing Instructions */}
-      {isRouteDrawing && (
-        <div className="absolute bottom-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-20">
-          <div className="text-sm font-medium flex items-center gap-2">
-            <div 
-              className="w-3 h-3 rounded-full border border-white" 
-              style={{ backgroundColor: currentRouteColor }}
-            />
-            Drawing Alternative Route
-          </div>
-          <div className="text-xs opacity-90">Click to add waypoints • Double-click to finish</div>
-          {currentRoute.length > 0 && (
-            <div className="text-xs opacity-75">{currentRoute.length} waypoints added</div>
-          )}
-        </div>
-      )}
-
-      {/* Game Map Coordinate Grid */}
-      <div className="absolute inset-0 pointer-events-none opacity-15 z-0" style={{
-        backgroundImage: `
-          linear-gradient(to right, rgba(100,150,200,0.4) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(100,150,200,0.4) 1px, transparent 1px)
-        `,
-        backgroundSize: '50px 50px'
-      }}></div>
 
       <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg text-sm font-mono z-10">
         Game Map Coordinates
