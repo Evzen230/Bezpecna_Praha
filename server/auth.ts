@@ -2,13 +2,40 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { type Express } from "express";
 import session from "express-session";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { scrypt, randomBytes, timingSafeEqual, createCipheriv, createDecipheriv } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { type User, type InsertUser, loginSchema, verifyEmailSchema } from "@shared/schema";
 import { sendVerificationEmail, sendPasswordResetEmail } from "./email";
 
 const scryptAsync = promisify(scrypt);
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "v7yB8pL2mN9xQ4zW1aR5tU8iO0pS3dF6"; // 32 bytes for AES-256
+const IV_LENGTH = 16;
+
+export function encrypt(text: string): string {
+  const iv = randomBytes(IV_LENGTH);
+  const cipher = createCipheriv("aes-256-gcm", Buffer.from(ENCRYPTION_KEY), iv);
+  let encrypted = cipher.update(text, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  const authTag = cipher.getAuthTag().toString("hex");
+  return `${iv.toString("hex")}:${authTag}:${encrypted}`;
+}
+
+export function decrypt(text: string): string {
+  try {
+    const [ivHex, authTagHex, encryptedHex] = text.split(":");
+    if (!ivHex || !authTagHex || !encryptedHex) return text; // Pro případ migrace z nešifrovaných dat
+    const iv = Buffer.from(ivHex, "hex");
+    const authTag = Buffer.from(authTagHex, "hex");
+    const decipher = createDecipheriv("aes-256-gcm", Buffer.from(ENCRYPTION_KEY), iv);
+    decipher.setAuthTag(authTag);
+    let decrypted = decipher.update(encryptedHex, "hex", "utf8");
+    decrypted += decipher.final("utf8");
+    return decrypted;
+  } catch (e) {
+    return text; // Fallback na původní text pokud dešifrování selže
+  }
+}
 
 async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString("hex");

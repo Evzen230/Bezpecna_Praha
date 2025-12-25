@@ -4,6 +4,7 @@ import createMemoryStore from "memorystore";
 import { nanoid } from "nanoid";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
+import { encrypt, decrypt } from "./auth";
 
 const MemoryStore = createMemoryStore(session);
 
@@ -92,26 +93,30 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async getUser(id: string): Promise<User | null> {
-    return this.users.get(id) || null;
-  }
-
   async getUserByEmail(email: string): Promise<User | null> {
     const users = Array.from(this.users.values());
     for (const user of users) {
-      if (user.email === email) {
-        return user;
+      // Dešifrujeme e-mail pro porovnání
+      const decryptedEmail = decrypt(user.email);
+      if (decryptedEmail === email) {
+        return { ...user, email: decryptedEmail };
       }
     }
     return null;
   }
 
   async getUserByUsername(username: string): Promise<User | null> {
-    const users = Array.from(this.users.values());
-    for (const user of users) {
-      if (user.username === username) {
-        return user;
-      }
+    const user = Array.from(this.users.values()).find(u => u.username === username);
+    if (user) {
+      return { ...user, email: decrypt(user.email) };
+    }
+    return null;
+  }
+
+  async getUser(id: string): Promise<User | null> {
+    const user = this.users.get(id);
+    if (user) {
+      return { ...user, email: decrypt(user.email) };
     }
     return null;
   }
@@ -119,9 +124,11 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = nanoid();
     const verificationCode = Math.random().toString().slice(2, 8);
+    // Šifrujeme e-mail před uložením
+    const encryptedEmail = encrypt(insertUser.email);
     const user: User = {
       id,
-      email: insertUser.email,
+      email: encryptedEmail,
       username: insertUser.username,
       password: insertUser.password,
       role: 'user',
@@ -134,7 +141,7 @@ export class MemStorage implements IStorage {
     };
     this.users.set(id, user);
     await this.syncToFile();
-    return user;
+    return { ...user, email: insertUser.email };
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | null> {
@@ -285,7 +292,10 @@ export class MemStorage implements IStorage {
   }
 
   async getAllUsers(): Promise<User[]> {
-    return Array.from(this.users.values());
+    return Array.from(this.users.values()).map(user => ({
+      ...user,
+      email: decrypt(user.email)
+    }));
   }
 
   async changeUserRole(userId: string, role: 'admin' | 'user'): Promise<boolean> {
