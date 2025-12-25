@@ -37,7 +37,7 @@ export function CookieConsent() {
                   Tento web používá soubory cookies k zajištění nejlepšího uživatelského zážitku.
                 </p>
                 <p className="text-xs italic border-l-2 border-primary/30 pl-2">
-                  Upozornění: Data o incidentech jsou pro účely vývoje a transparentnosti logována do konzole prohlížeče. Administrátoři mají plné právo spravovat veškerý obsah mapy.
+                  Upozornění: Administrátoři mají plné právo spravovat veškerý obsah mapy pro zajištění bezpečnosti a pořádku.
                 </p>
                 <Link href="/privacy" className="text-primary hover:underline block font-medium">
                   Zásady ochrany osobních údajů

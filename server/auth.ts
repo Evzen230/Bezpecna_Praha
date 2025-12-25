@@ -127,6 +127,9 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: string, done) => {
     try {
       const user = await storage.getUser(id);
+      if (user && user.isBanned) {
+        return done(null, false, { message: "Váš účet byl zablokován." });
+      }
       done(null, user);
     } catch (err) {
       done(err);

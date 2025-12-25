@@ -121,9 +121,13 @@ export function registerRoutes(app: Express): Server {
       return res.status(403).json({ message: "Nemáte oprávnění" });
     }
 
+    const userId = req.params.userId;
+    if (userId === req.user?.id) {
+      return res.status(400).json({ message: "Nemůžete zablokovat sami sebe" });
+    }
+
     try {
       const { reason } = banUserSchema.parse(req.body);
-      const userId = req.params.userId;
 
       const user = await storage.getUser(userId);
       if (!user) {
@@ -131,6 +135,11 @@ export function registerRoutes(app: Express): Server {
       }
 
       await storage.banUser(userId, reason);
+      
+      // Force logout by destroying sessions for this user
+      // Since we use memorystore, we can iterate over sessions if needed, 
+      // but a simpler way is to check ban status in deserializeUser
+      
       res.json({ message: `Uživatel ${user.username} byl zablokován.` });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -198,9 +207,13 @@ export function registerRoutes(app: Express): Server {
       return res.status(403).json({ message: "Nemáte oprávnění" });
     }
 
+    const userId = req.params.userId;
+    if (userId === req.user?.id) {
+      return res.status(400).json({ message: "Nemůžete změnit vlastní roli" });
+    }
+
     try {
       const { role } = changeUserRoleSchema.parse(req.body);
-      const userId = req.params.userId;
 
       const user = await storage.getUser(userId);
       if (!user) {
