@@ -24,7 +24,8 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ message: "Nepřihlášen" });
     }
 
-    if (req.user?.role !== 'admin') {
+    const user = await storage.getUser(req.user!.id);
+    if (!user || user.role !== 'admin' || user.isBanned) {
       return res.status(403).json({ message: "Nemáte oprávnění" });
     }
 
@@ -117,7 +118,8 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ message: "Nepřihlášen" });
     }
 
-    if (req.user?.role !== 'admin') {
+    const currentUser = await storage.getUser(req.user!.id);
+    if (!currentUser || currentUser.role !== 'admin' || currentUser.isBanned) {
       return res.status(403).json({ message: "Nemáte oprávnění" });
     }
 
@@ -152,7 +154,8 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ message: "Nepřihlášen" });
     }
 
-    if (req.user?.role !== 'admin') {
+    const currentUser = await storage.getUser(req.user!.id);
+    if (!currentUser || currentUser.role !== 'admin' || currentUser.isBanned) {
       return res.status(403).json({ message: "Nemáte oprávnění" });
     }
 
@@ -176,7 +179,8 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ message: "Nepřihlášen" });
     }
 
-    if (req.user?.role !== 'admin') {
+    const currentUser = await storage.getUser(req.user!.id);
+    if (!currentUser || currentUser.role !== 'admin' || currentUser.isBanned) {
       return res.status(403).json({ message: "Nemáte oprávnění" });
     }
 
@@ -203,7 +207,8 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ message: "Nepřihlášen" });
     }
 
-    if (req.user?.role !== 'admin') {
+    const currentUser = await storage.getUser(req.user!.id);
+    if (!currentUser || currentUser.role !== 'admin' || currentUser.isBanned) {
       return res.status(403).json({ message: "Nemáte oprávnění" });
     }
 
