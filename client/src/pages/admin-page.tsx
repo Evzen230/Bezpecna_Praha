@@ -49,7 +49,8 @@ export default function AdminPage() {
       refetch();
     },
     onError: (error: any) => {
-      toast({ title: "Chyba", description: error.message, variant: "destructive" });
+      const msg = error.message?.message || error.message;
+      toast({ title: "Chyba", description: typeof msg === 'string' ? msg : JSON.stringify(msg), variant: "destructive" });
     },
   });
 
@@ -62,7 +63,8 @@ export default function AdminPage() {
       refetch();
     },
     onError: (error: any) => {
-      toast({ title: "Chyba", description: error.message, variant: "destructive" });
+      const msg = error.message?.message || error.message;
+      toast({ title: "Chyba", description: typeof msg === 'string' ? msg : JSON.stringify(msg), variant: "destructive" });
     },
   });
 
@@ -75,7 +77,8 @@ export default function AdminPage() {
       refetch();
     },
     onError: (error: any) => {
-      toast({ title: "Chyba", description: error.message, variant: "destructive" });
+      const msg = error.message?.message || error.message;
+      toast({ title: "Chyba", description: typeof msg === 'string' ? msg : JSON.stringify(msg), variant: "destructive" });
     },
   });
 

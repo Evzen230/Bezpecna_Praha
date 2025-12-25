@@ -54,9 +54,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], data.user);
     },
     onError: (error: Error) => {
+      const msg = (error as any).message?.message || error.message;
       toast({
         title: "Přihlášení selhalo",
-        description: error.message,
+        description: typeof msg === 'string' ? msg : JSON.stringify(msg),
         variant: "destructive",
       });
     },
@@ -68,9 +69,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await res.json();
     },
     onError: (error: Error) => {
+      const msg = (error as any).message?.message || error.message;
       toast({
         title: "Registrace selhala",
-        description: error.message,
+        description: typeof msg === 'string' ? msg : JSON.stringify(msg),
         variant: "destructive",
       });
     },
@@ -82,9 +84,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await res.json();
     },
     onError: (error: Error) => {
+      const msg = (error as any).message?.message || error.message;
       toast({
         title: "Ověření selhalo",
-        description: error.message,
+        description: typeof msg === 'string' ? msg : JSON.stringify(msg),
         variant: "destructive",
       });
     },
@@ -96,9 +99,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await res.json();
     },
     onError: (error: Error) => {
+      const msg = (error as any).message?.message || error.message;
       toast({
         title: "Chyba",
-        description: error.message,
+        description: typeof msg === 'string' ? msg : JSON.stringify(msg),
         variant: "destructive",
       });
     },
@@ -110,9 +114,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await res.json();
     },
     onError: (error: Error) => {
+      const msg = (error as any).message?.message || error.message;
       toast({
         title: "Resetování hesla selhalo",
-        description: error.message,
+        description: typeof msg === 'string' ? msg : JSON.stringify(msg),
         variant: "destructive",
       });
     },

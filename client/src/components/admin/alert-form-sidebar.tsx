@@ -78,9 +78,10 @@ export default function AlertFormSidebar({
       onAfterSubmit?.();
     },
     onError: (error: Error) => {
+      const msg = (error as any).message?.message || error.message;
       toast({
         title: "Chyba",
-        description: error.message,
+        description: typeof msg === 'string' ? msg : JSON.stringify(msg),
         variant: "destructive",
       });
     },
@@ -101,9 +102,10 @@ export default function AlertFormSidebar({
       onAfterSubmit?.();
     },
     onError: (error: Error) => {
+      const msg = (error as any).message?.message || error.message;
       toast({
         title: "Chyba",
-        description: error.message,
+        description: typeof msg === 'string' ? msg : JSON.stringify(msg),
         variant: "destructive",
       });
     },
