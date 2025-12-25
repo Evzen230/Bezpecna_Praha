@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Cookie } from "lucide-react";
 
+import { Link } from "wouter";
+
 export function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -29,10 +31,18 @@ export function CookieConsent() {
               <Cookie className="h-5 w-5 text-primary" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium leading-none">Souhlas s cookies</p>
-              <p className="text-sm text-muted-foreground">
-                Tento web používá soubory cookies k zajištění nejlepšího uživatelského zážitku.
-              </p>
+              <p className="text-sm font-medium leading-none">Souhlas s cookies a ochrana údajů</p>
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p>
+                  Tento web používá soubory cookies k zajištění nejlepšího uživatelského zážitku.
+                </p>
+                <p className="text-xs italic border-l-2 border-primary/30 pl-2">
+                  Upozornění: Data o incidentech jsou pro účely vývoje a transparentnosti logována do konzole prohlížeče. Administrátoři mají plné právo spravovat veškerý obsah mapy.
+                </p>
+                <Link href="/privacy" className="text-primary hover:underline block font-medium">
+                  Zásady ochrany osobních údajů
+                </Link>
+              </div>
             </div>
           </div>
           <div className="flex gap-2 justify-end">
