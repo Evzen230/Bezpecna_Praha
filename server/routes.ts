@@ -5,37 +5,20 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { insertAlertSchema, banUserSchema, changeUserRoleSchema } from "@shared/schema";
 
+// Word filter implementation
+const BANNED_WORDS = ["debil", "idiot", "negger", "kurva", "zmrd", "picus", "kokot", "pica"];
+
+function containsBannedWord(text: string): boolean {
+  const lowercaseText = text.toLowerCase();
+  return BANNED_WORDS.some(word => lowercaseText.includes(word));
+}
+
+// Spam protection (Rate limiting for alert creation)
+const userLastAlertTime = new Map<string, number>();
+const ALERT_COOLDOWN_MS = 60000; // 1 minute cooldown between alerts for non-admins
+
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
-
-  // Get all active alerts
-  app.get("/api/alerts", async (_req, res) => {
-    try {
-      const alerts = await storage.getActiveAlerts();
-      res.json(alerts);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  // Get all alerts for admin (including inactive)
-  app.get("/api/admin/alerts", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Nepřihlášen" });
-    }
-
-    const user = await storage.getUser(req.user!.id);
-    if (!user || user.role !== 'admin' || user.isBanned) {
-      return res.status(403).json({ message: "Nemáte oprávnění" });
-    }
-
-    try {
-      const alerts = await storage.getActiveAlerts();
-      res.json(alerts);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
 
   // Create new alert
   app.post("/api/alerts", async (req, res) => {
@@ -43,12 +26,37 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ message: "Nepřihlášen" });
     }
 
+    const userId = req.user!.id;
+    const now = Date.now();
+
+    // Admin bypass rate limit, others have cooldown
+    const isUserAdmin = req.user?.role === 'admin';
+    if (!isUserAdmin) {
+      const lastAlertTime = userLastAlertTime.get(userId) || 0;
+      if (now - lastAlertTime < ALERT_COOLDOWN_MS) {
+        const remainingSeconds = Math.ceil((ALERT_COOLDOWN_MS - (now - lastAlertTime)) / 1000);
+        return res.status(429).json({ message: `Prosím počkejte ${remainingSeconds} sekund před vytvořením dalšího upozornění.` });
+      }
+    }
+
     try {
       const validatedData = insertAlertSchema.parse(req.body);
+
+      // Filter check for title and description
+      if (containsBannedWord(validatedData.title) || containsBannedWord(validatedData.description)) {
+        return res.status(400).json({ message: "Obsah obsahuje nepovolená slova." });
+      }
+
       const alert = await storage.createAlert({
         ...validatedData,
-        createdBy: req.user?.id || "",
+        createdBy: userId,
       });
+
+      // Update last alert time
+      if (!isUserAdmin) {
+        userLastAlertTime.set(userId, now);
+      }
+
       res.status(201).json(alert);
     } catch (error: any) {
       res.status(400).json({ message: error.message });

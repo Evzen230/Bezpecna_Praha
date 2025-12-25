@@ -144,6 +144,13 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "E-mail, uživatelské jméno a heslo jsou povinné" });
       }
 
+      // Word filter for username
+      const BANNED_WORDS = ["debil", "idiot", "negger", "kurva", "zmrd", "picus", "kokot", "pica"];
+      const lowercaseUsername = username.toLowerCase();
+      if (BANNED_WORDS.some(word => lowercaseUsername.includes(word))) {
+        return res.status(400).json({ message: "Uživatelské jméno obsahuje nepovolená slova." });
+      }
+
       if (!acceptedTerms || !acceptedPrivacy) {
         return res.status(400).json({ message: "Musíte souhlasit s podmínkami a zásadami" });
       }
