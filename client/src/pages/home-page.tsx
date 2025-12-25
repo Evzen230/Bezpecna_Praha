@@ -111,17 +111,24 @@ export default function HomePage() {
       </header>
 
       {/* Main Content */}
-      <main className="relative">
-        <InteractiveMap
-          categoryFilter={categoryFilter}
-          severityFilter={severityFilter}
-          isAdmin={!!user}
-          isCreatingAlert={isCreatingAlert}
-          onCreatingChange={setIsCreatingAlert}
-        />
+      <main className="relative flex flex-col md:flex-row h-[calc(100vh-4rem)] overflow-hidden">
+        {/* Sidebar for stats and filters */}
+        <aside className="w-full md:w-80 bg-white border-r border-gray-200 overflow-y-auto z-20 shadow-lg flex flex-col">
+          <div className="p-4 flex-1">
+            <AlertStats />
+          </div>
+        </aside>
 
-        {/* Alert Statistics Panel */}
-        <AlertStats />
+        {/* Map area */}
+        <section className="flex-1 relative bg-gray-900">
+          <InteractiveMap
+            categoryFilter={categoryFilter}
+            severityFilter={severityFilter}
+            isAdmin={!!user}
+            isCreatingAlert={isCreatingAlert}
+            onCreatingChange={setIsCreatingAlert}
+          />
+        </section>
 
         {/* Create Alert Button */}
         {user && (

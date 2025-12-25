@@ -36,10 +36,8 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
-  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 0.8 }); // Start with slightly zoomed out view
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [lastTouch, setLastTouch] = useState<{ x: number; y: number; distance: number } | null>(null);
+  // Set fixed scale and position. Disable zooming and dragging.
+  const [transform] = useState({ x: 0, y: 0, scale: 1.0 }); 
   const [isRouteDrawing, setIsRouteDrawing] = useState(false);
   const [currentRoute, setCurrentRoute] = useState<{ x: number; y: number }[]>([]);
   const [drawnRoutes, setDrawnRoutes] = useState<DrawnRoute[]>([]);
@@ -60,117 +58,48 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
   const handleMapClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!isAdmin) return;
     
-    // Don't process clicks during dragging
-    if (isDragging) return;
-
     // Don't process clicks if not in creating alert mode
     if (!isCreatingAlert) return;
 
     const rect = mapRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    // Calculate position relative to the original map coordinates (before transform)
-    const x = ((e.clientX - rect.left - transform.x) / transform.scale / rect.width) * 100;
-    const y = ((e.clientY - rect.top - transform.y) / transform.scale / rect.height) * 100;
+    // Calculate position relative to the map (scale is 1.0, transform is 0,0)
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
 
     // Ensure positions are within bounds
     const clampedX = Math.max(0, Math.min(100, x));
     const clampedY = Math.max(0, Math.min(100, y));
 
-    console.log('Map clicked - creating alert:', isCreatingAlert, 'position:', { x: clampedX, y: clampedY });
-
     if (isRouteDrawing) {
-      console.log('Route drawing - adding point:', { x: clampedX, y: clampedY });
-      // Add point to current route
-      setCurrentRoute(prev => {
-        const newRoute = [...prev, { x: clampedX, y: clampedY }];
-        console.log('Current route now has points:', newRoute.length);
-        return newRoute;
-      });
+      setCurrentRoute(prev => [...prev, { x: clampedX, y: clampedY }]);
       return;
     }
 
-    console.log('Map clicked at:', { x: clampedX, y: clampedY });
     setPendingPosition({ x: clampedX, y: clampedY });
     setShowAlertForm(true);
-    onCreatingChange?.(false); // Turn off creating mode after alert form opens
-  }, [isAdmin, isDragging, transform, isRouteDrawing, isCreatingAlert, onCreatingChange]);
+    onCreatingChange?.(false);
+  }, [isAdmin, isRouteDrawing, isCreatingAlert, onCreatingChange]);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // Don't start dragging if we're in route drawing mode
-    if (isRouteDrawing) return;
-    
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
-  }, [transform, isRouteDrawing]);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging || isRouteDrawing) return;
-    
-    setTransform(prev => ({
-      ...prev,
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    }));
-  }, [isDragging, dragStart, isRouteDrawing]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    
-    const rect = mapRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const newScale = Math.min(Math.max(transform.scale * delta, 0.3), 3); // Allow more zoom out
-    
-    // Calculate zoom center
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    
-    setTransform(prev => ({
-      x: mouseX - (mouseX - prev.x) * (newScale / prev.scale),
-      y: mouseY - (mouseY - prev.y) * (newScale / prev.scale),
-      scale: newScale
-    }));
-  }, [transform]);
-
-  const resetView = useCallback(() => {
-    setTransform({ x: 0, y: 0, scale: 0.8 });
-  }, []);
-
-  useEffect(() => {
-    const handleGlobalMouseUp = () => setIsDragging(false);
-    
-    if (isDragging) {
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-      document.addEventListener('mouseleave', handleGlobalMouseUp);
-    }
-    
-    return () => {
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
-      document.removeEventListener('mouseleave', handleGlobalMouseUp);
-    };
-  }, [isDragging]);
-
-  const handleAlertClick = (alert: Alert) => {
+  const handleAlertClick = useCallback((alert: Alert) => {
     setSelectedAlert(alert);
-  };
+  }, []);
 
-  const handleEditAlert = (alert: Alert) => {
+  const handleEditAlert = useCallback((alert: Alert) => {
     setEditingAlert(alert);
     setShowAlertForm(true);
-  };
+  }, []);
+
+  const resetView = useCallback(() => {
+    // No-op as we are fixed
+  }, []);
 
   const handleMapDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!isRouteDrawing || currentRoute.length < 2) return;
     
     e.preventDefault();
     
-    // Finish current route
     const newRoute: DrawnRoute = {
       id: Date.now().toString(),
       points: [...currentRoute],
@@ -181,13 +110,11 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
     setDrawnRoutes(prev => [...prev, newRoute]);
     setCurrentRoute([]);
     
-    // Auto-select next color
     const nextColorIndex = (routeColors.indexOf(currentRouteColor) + 1) % routeColors.length;
     setCurrentRouteColor(routeColors[nextColorIndex]);
   }, [isRouteDrawing, currentRoute, currentRouteColor, drawnRoutes.length, routeColors]);
 
   const handleRouteDrawingChange = useCallback((isDrawing: boolean) => {
-    console.log('Route drawing changed:', isDrawing);
     setIsRouteDrawing(isDrawing);
     if (!isDrawing) {
       setCurrentRoute([]);
@@ -240,12 +167,8 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
         className="h-screen bg-gray-900 relative overflow-hidden"
         onClick={handleMapClick}
         onDoubleClick={handleMapDoubleClick}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onWheel={handleWheel}
         style={{ 
-          cursor: isDragging ? 'grabbing' : (isCreatingAlert ? 'crosshair' : (isAdmin ? 'grab' : 'default')),
+          cursor: isCreatingAlert ? 'crosshair' : 'default',
           userSelect: 'none'
         }}
         onContextMenu={(e) => {
@@ -255,13 +178,13 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
           }
         }}
       >
-        {/* Base Map Image */}
+        {/* Base Map Image - Container set to 101% for better sub-pixel alignment */}
         <div
           style={{
             transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
             transformOrigin: '0 0',
-            width: '100%',
-            height: '100%',
+            width: '101%',
+            height: '101%',
             position: 'relative'
           }}
         >
@@ -428,10 +351,8 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
         backgroundSize: '50px 50px'
       }}></div>
 
-      {/* Coordinate Display */}
       <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg text-sm font-mono z-10">
         Game Map Coordinates
-        <div className="text-xs opacity-75">Scale: {(transform.scale * 100).toFixed(0)}%</div>
       </div>
     </>
   );

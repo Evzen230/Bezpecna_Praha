@@ -71,11 +71,10 @@ export default function AlertMarker({ alert, onClick, scale = 1, isInSVG = false
   const Icon = customIcon || categoryIcons[alert.category as keyof typeof categoryIcons] || AlertTriangle;
   const colorClass = severityColors[alert.severity as keyof typeof severityColors];
   
-  // Calculate responsive size based on zoom level with strict limits
-  const markerScale = Math.max(0.3, Math.min(1.2, 1 / scale));
-  const iconSize = Math.max(10, Math.min(18, 16 * markerScale));
-  const fontSize = Math.max(8, Math.min(11, 12 * markerScale));
-  const padding = Math.max(6, Math.min(10, 8 * markerScale));
+  // Constant sizes for fixed map
+  const iconSize = 16;
+  const fontSize = 11;
+  const padding = 8;
   
   // When in SVG, don't position - foreignObject handles positioning
   const containerStyle = isInSVG ? {} : {
@@ -83,7 +82,7 @@ export default function AlertMarker({ alert, onClick, scale = 1, isInSVG = false
     top: `${alert.yPosition}%`,
     left: `${alert.xPosition}%`,
     zIndex: 10,
-    transform: `translate(-50%, -50%) scale(${markerScale})`,
+    transform: `translate(-50%, -50%)`,
     transformOrigin: 'center center',
   };
   
