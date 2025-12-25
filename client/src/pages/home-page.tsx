@@ -9,10 +9,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Filter, User, Plus } from "lucide-react";
+import { LogOut, Filter, User, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocation } from "wouter";
 import InteractiveMap from "@/components/map/interactive-map";
 import AlertStats from "@/components/alerts/alert-stats";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function HomePage() {
   const { user, logoutMutation } = useAuth();
@@ -20,15 +21,16 @@ export default function HomePage() {
   const [isCreatingAlert, setIsCreatingAlert] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [severityFilter, setSeverityFilter] = useState("all");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const handleLogout = () => {
     logoutMutation.mutate();
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header Navigation */}
-      <header className="bg-white shadow-sm border-b border-gray-200 relative z-50">
+      <header className="bg-white shadow-sm border-b border-gray-200 relative z-50 shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
@@ -44,7 +46,7 @@ export default function HomePage() {
             <div className="hidden md:flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Filtrovat upozornění:
+                  Filtrovat:
                 </label>
                 <Select
                   value={categoryFilter}
@@ -55,10 +57,8 @@ export default function HomePage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Všechny typy</SelectItem>
-                    <SelectItem value="road">Dopravní nebezpečí</SelectItem>
-                    <SelectItem value="criminal">
-                      Kriminální aktivita
-                    </SelectItem>
+                    <SelectItem value="road">Dopravní</SelectItem>
+                    <SelectItem value="criminal">Kriminální</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -74,7 +74,7 @@ export default function HomePage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Všechny úrovně</SelectItem>
+                    <SelectItem value="all">Všechny</SelectItem>
                     <SelectItem value="critical">Kritická</SelectItem>
                     <SelectItem value="high">Vysoká</SelectItem>
                     <SelectItem value="medium">Střední</SelectItem>
@@ -111,13 +111,37 @@ export default function HomePage() {
       </header>
 
       {/* Main Content */}
-      <main className="relative flex flex-col md:flex-row h-[calc(100vh-4rem)] overflow-hidden">
+      <main className="relative flex flex-1 overflow-hidden h-full">
+        {/* Sidebar Toggle Button (Floating) */}
+        <Button
+          size="icon"
+          variant="secondary"
+          className={`fixed top-20 z-30 transition-all duration-300 shadow-md ${
+            isSidebarOpen ? "left-[304px]" : "left-4"
+          }`}
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          data-testid="button-toggle-sidebar"
+        >
+          {isSidebarOpen ? (
+            <ChevronLeft className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+        </Button>
+
         {/* Sidebar for stats and filters */}
-        <aside className="w-full md:w-80 bg-white border-r border-gray-200 overflow-y-auto z-20 shadow-lg flex flex-col">
-          <div className="p-4 flex-1">
-            <AlertStats />
+        <motion.aside 
+          initial={false}
+          animate={{ width: isSidebarOpen ? 320 : 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="bg-white border-r border-gray-200 z-20 shadow-lg flex flex-col relative"
+        >
+          <div className={`flex-1 overflow-y-auto w-80 ${!isSidebarOpen && "invisible"}`}>
+            <div className="p-4 h-full">
+              <AlertStats />
+            </div>
           </div>
-        </aside>
+        </motion.aside>
 
         {/* Map area */}
         <section className="flex-1 relative bg-gray-900">
@@ -142,16 +166,6 @@ export default function HomePage() {
             <Plus className="h-6 w-6" />
           </Button>
         )}
-
-        {/* Mobile Filter Button */}
-        <Button
-          className="md:hidden fixed bottom-24 right-6 z-30 rounded-full w-12 h-12 p-0"
-          onClick={() => {
-            /* TODO: Show mobile filter modal */
-          }}
-        >
-          <Filter className="h-5 w-5" />
-        </Button>
       </main>
     </div>
   );
