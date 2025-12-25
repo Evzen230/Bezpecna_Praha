@@ -6,3 +6,4 @@ vite.config.ts.*
 *.tar.gz
 emails/
 data.json
+firebase-debug.log
