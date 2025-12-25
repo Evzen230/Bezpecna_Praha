@@ -149,13 +149,9 @@ export default function AuthPage() {
         onSuccess: () => {
           toast({
             title: "Heslo změněno",
-            description: "Nyní se můžete přihlásit novým heslem.",
+            description: "Heslo bylo úspěšně změněno a byli jste přihlášeni.",
           });
-          setShowPasswordReset(false);
-          setResetEmailOrUsername("");
-          setResetCode("");
-          setResetCodeReceived(null);
-          setNewPassword("");
+          setLocation("/");
         },
       }
     );

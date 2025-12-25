@@ -254,7 +254,29 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Neplatný nebo vypršelý reset kód" });
       }
 
-      return res.json({ message: "Heslo bylo úspěšně změněno. Nyní se můžete přihlásit novým heslem." });
+      // Provedeme automatické přihlášení
+      let user = await storage.getUserByEmail(emailOrUsername);
+      if (!user) {
+        user = await storage.getUserByUsername(emailOrUsername);
+      }
+
+      if (user) {
+        req.login(user, (err) => {
+          if (err) return next(err);
+          return res.json({ 
+            message: "Heslo bylo úspěšně změněno a byli jste přihlášeni.",
+            user: {
+              id: user.id,
+              email: user.email,
+              username: user.username,
+              role: user.role,
+              emailVerified: user.emailVerified,
+            }
+          });
+        });
+      } else {
+        return res.json({ message: "Heslo bylo úspěšně změněno. Nyní se můžete přihlásit." });
+      }
     } catch (error) {
       next(error);
     }

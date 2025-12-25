@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { decrypt } from "./auth";
 
 interface EmailOptions {
   to: string;
@@ -41,14 +42,16 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       return false;
     }
 
+    const decryptedTo = decrypt(options.to);
+
     await transporter.sendMail({
       from: process.env.GMAIL_USER,
-      to: options.to,
+      to: decryptedTo,
       subject: options.subject,
       html: options.html,
     });
 
-    console.log(`[EMAIL] Sent to ${options.to}: ${options.subject}`);
+    console.log(`[EMAIL] Sent to ${decryptedTo}: ${options.subject}`);
     return true;
   } catch (error) {
     console.error("[EMAIL] Failed to send:", error);
