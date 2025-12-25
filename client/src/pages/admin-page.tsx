@@ -146,8 +146,8 @@ export default function AdminPage() {
                               role: e.target.value as 'admin' | 'user',
                             });
                           }}
-                          disabled={changeRoleMutation.isPending}
-                          className="text-xs bg-background border rounded px-2 py-1 cursor-pointer"
+                          disabled={changeRoleMutation.isPending || u.id === user.id}
+                          className="text-xs bg-background border rounded px-2 py-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           data-testid={`select-role-${u.id}`}
                         >
                           <option value="user">Změnit na User</option>
@@ -196,7 +196,7 @@ export default function AdminPage() {
                                 });
                               }
                             }}
-                            disabled={banMutation.isPending}
+                            disabled={banMutation.isPending || u.id === user.id}
                             data-testid={`button-ban-${u.id}`}
                           >
                             Blokovat
@@ -214,56 +214,7 @@ export default function AdminPage() {
           </p>
         </Card>
 
-        <Card className="p-6 mt-6">
-          <h2 className="text-xl font-semibold mb-4">Debug - Databáze</h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Podívej se na všechna data v aplikaci (JSON formát)
-          </p>
-          <Button 
-            onClick={() => {
-              fetch('/api/admin/debug', { credentials: 'include' })
-                .then(r => r.json())
-                .then(data => {
-                  const json = JSON.stringify(data, null, 2);
-                  console.log('Database:', data);
-                  toast({ 
-                    title: "Databáze", 
-                    description: "Data jsou vidět v konzoli (F12 → Console)" 
-                  });
-                  // Also copy to clipboard
-                  navigator.clipboard.writeText(json);
-                });
-            }}
-            variant="outline"
-            className="gap-2"
-            data-testid="button-view-database"
-          >
-            Zobrazit data
-          </Button>
-          <Button 
-            onClick={() => {
-              if (confirm('Opravdu chceš smazat VŠECHNA data?')) {
-                fetch('/api/admin/debug/clear', { 
-                  method: 'POST',
-                  credentials: 'include' 
-                })
-                  .then(r => r.json())
-                  .then(() => {
-                    toast({ 
-                      title: "Smazáno", 
-                      description: "Všechna data byla odstraněna" 
-                    });
-                    refetch();
-                  });
-              }
-            }}
-            variant="destructive"
-            className="gap-2 ml-2"
-            data-testid="button-clear-database"
-          >
-            Smazat vše
-          </Button>
-        </Card>
+        {/* Debug section removed as per security requirements */}
       </div>
     </div>
   );
