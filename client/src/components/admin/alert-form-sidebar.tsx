@@ -38,7 +38,7 @@ export default function AlertFormSidebar({
 
   const [expirationMinutes, setExpirationMinutes] = useState(60);
 
-  const form = useForm<z.infer<typeof insertAlertSchema>>({
+  const form = useForm({
     resolver: zodResolver(insertAlertSchema),
     defaultValues: {
       title: editingAlert?.title || "",
@@ -48,7 +48,7 @@ export default function AlertFormSidebar({
       xPosition: editingAlert?.xPosition ?? initialPosition?.x ?? 50,
       yPosition: editingAlert?.yPosition ?? initialPosition?.y ?? 50,
       icon: editingAlert?.icon || "construction",
-      alternativeRoutes: "",
+      alternativeRoute: editingAlert?.alternativeRoute || "",
       expirationMinutes: editingAlert?.expirationMinutes || 60,
       isActive: editingAlert?.isActive ?? true,
     },

@@ -144,15 +144,15 @@ export default function HomePage() {
         </motion.aside>
 
         {/* Map area */}
-        <section className="flex-1 relative bg-gray-900">
+        <div className="flex-1 relative">
           <InteractiveMap
             categoryFilter={categoryFilter}
             severityFilter={severityFilter}
             isAdmin={!!user}
             isCreatingAlert={isCreatingAlert}
-            onCreatingChange={setIsCreatingAlert}
+            onCreatingChange={(val) => setIsCreatingAlert(val)}
           />
-        </section>
+        </div>
 
         {/* Create Alert Button */}
         {user && (

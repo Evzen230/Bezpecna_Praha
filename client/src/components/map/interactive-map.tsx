@@ -6,6 +6,7 @@ import AlertDetailModal from "@/components/alerts/alert-detail-modal";
 import AlertFormSidebar from "@/components/admin/alert-form-sidebar";
 import { Button } from "@/components/ui/button";
 import mapImageUrl from "@assets/Snímek obrazovky 2025-07-09 202523_1752088416796.jpg";
+import { queryClient } from "@/lib/queryClient";
 
 // Type declaration for window extension
 declare global {
@@ -329,6 +330,8 @@ export default function InteractiveMap({ categoryFilter, severityFilter, isAdmin
                   setEditingAlert(null);
                   setIsRouteDrawing(false);
                   setCurrentRoute([]);
+                  // Also trigger a manual refetch to be sure
+                  queryClient.invalidateQueries({ queryKey: ["/api/alerts"] });
                 }}
                 onRouteDrawingChange={handleRouteDrawingChange}
                 onRoutesChange={handleRoutesChange}
