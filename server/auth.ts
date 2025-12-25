@@ -128,7 +128,7 @@ export function setupAuth(app: Express) {
     try {
       const user = await storage.getUser(id);
       if (user && user.isBanned) {
-        return done(null, false, { message: "Váš účet byl zablokován." });
+        return done(null, false);
       }
       done(null, user);
     } catch (err) {
