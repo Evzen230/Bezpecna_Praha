@@ -5,7 +5,7 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual, createCipheriv, createDecipheriv } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { type User, type InsertUser, loginSchema, verifyEmailSchema } from "@shared/schema";
+import { type User, type InsertUser, loginSchema, verifyEmailSchema, containsBannedWord } from "@shared/schema";
 import { sendVerificationEmail, sendPasswordResetEmail } from "./email";
 
 const scryptAsync = promisify(scrypt);
@@ -145,9 +145,7 @@ export function setupAuth(app: Express) {
       }
 
       // Word filter for username
-      const BANNED_WORDS = ["debil", "idiot", "negger", "kurva", "zmrd", "picus", "kokot", "pica"];
-      const lowercaseUsername = username.toLowerCase();
-      if (BANNED_WORDS.some(word => lowercaseUsername.includes(word))) {
+      if (containsBannedWord(username)) {
         return res.status(400).json({ message: "Uživatelské jméno obsahuje nepovolená slova." });
       }
 

@@ -96,6 +96,14 @@ export type InsertAlert = z.infer<typeof insertAlertSchema>;
 export type BanUser = z.infer<typeof banUserSchema>;
 export type ChangeUserRole = z.infer<typeof changeUserRoleSchema>;
 
+// Global word filter
+export const BANNED_WORDS = ["debil", "idiot", "negger", "kurva", "zmrd", "picus", "kokot", "pica"];
+
+export function containsBannedWord(text: string): boolean {
+  const lowercaseText = text.toLowerCase();
+  return BANNED_WORDS.some(word => lowercaseText.includes(word));
+}
+
 // Legacy aliases for compatibility
 export type IUser = User;
 export type IAlert = Alert;

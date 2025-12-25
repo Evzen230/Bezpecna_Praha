@@ -3,17 +3,12 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertAlertSchema, banUserSchema, changeUserRoleSchema } from "@shared/schema";
+import { insertAlertSchema, banUserSchema, changeUserRoleSchema, containsBannedWord } from "@shared/schema";
 
-// Word filter implementation
-const BANNED_WORDS = ["debil", "idiot", "negger", "kurva", "zmrd", "picus", "kokot", "pica"];
+export function registerRoutes(app: Express): Server {
+  setupAuth(app);
 
-function containsBannedWord(text: string): boolean {
-  const lowercaseText = text.toLowerCase();
-  return BANNED_WORDS.some(word => lowercaseText.includes(word));
-}
-
-// Spam protection (Rate limiting for alert creation)
+  // Spam protection (Rate limiting for alert creation)
 const userLastAlertTime = new Map<string, number>();
 const ALERT_COOLDOWN_MS = 60000; // 1 minute cooldown between alerts for non-admins
 
