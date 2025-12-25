@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, AlertTriangle, Users, MapPin, ArrowLeft } from "lucide-react";
+import { Shield, AlertTriangle, Users, MapPin, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { insertUserSchema, loginSchema } from "@shared/schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,6 +46,10 @@ export default function AuthPage() {
       acceptedPrivacy: false,
     },
   });
+
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -297,14 +301,31 @@ export default function AuthPage() {
                     </div>
                     <div>
                       <Label htmlFor="new-password">Nové heslo</Label>
-                      <Input
-                        id="new-password"
-                        type="password"
-                        placeholder="Zadejte nové heslo"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        data-testid="input-new-password"
-                      />
+                      <div className="relative">
+                        <Input
+                          id="new-password"
+                          type={showResetPassword ? "text" : "password"}
+                          placeholder="Zadejte nové heslo"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          data-testid="input-new-password"
+                          className="pr-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowResetPassword(!showResetPassword)}
+                          data-testid="button-toggle-reset-password"
+                        >
+                          {showResetPassword ? (
+                            <EyeOff className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-500" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                     <Button
                       onClick={onResetPassword}
@@ -411,12 +432,29 @@ export default function AuthPage() {
                           <FormItem>
                             <FormLabel>Heslo</FormLabel>
                             <FormControl>
-                              <Input
-                                type="password"
-                                placeholder="Zadejte heslo"
-                                {...field}
-                                data-testid="input-login-password"
-                              />
+                              <div className="relative">
+                                <Input
+                                  type={showLoginPassword ? "text" : "password"}
+                                  placeholder="Zadejte heslo"
+                                  {...field}
+                                  data-testid="input-login-password"
+                                  className="pr-10"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                                  data-testid="button-toggle-login-password"
+                                >
+                                  {showLoginPassword ? (
+                                    <EyeOff className="h-4 w-4 text-gray-500" />
+                                  ) : (
+                                    <Eye className="h-4 w-4 text-gray-500" />
+                                  )}
+                                </Button>
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -497,12 +535,29 @@ export default function AuthPage() {
                           <FormItem>
                             <FormLabel>Heslo</FormLabel>
                             <FormControl>
-                              <Input
-                                type="password"
-                                placeholder="Vytvořte heslo"
-                                {...field}
-                                data-testid="input-register-password"
-                              />
+                              <div className="relative">
+                                <Input
+                                  type={showRegisterPassword ? "text" : "password"}
+                                  placeholder="Vytvořte heslo"
+                                  {...field}
+                                  data-testid="input-register-password"
+                                  className="pr-10"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                  onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                                  data-testid="button-toggle-register-password"
+                                >
+                                  {showRegisterPassword ? (
+                                    <EyeOff className="h-4 w-4 text-gray-500" />
+                                  ) : (
+                                    <Eye className="h-4 w-4 text-gray-500" />
+                                  )}
+                                </Button>
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
