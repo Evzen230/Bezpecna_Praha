@@ -13,6 +13,7 @@ import NotFound from "@/pages/not-found";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Shield } from "lucide-react";
+import { CookieConsent } from "@/components/cookie-consent";
 
 function Router() {
   return (
@@ -50,6 +51,7 @@ function App() {
         <TooltipProvider>
           <Header />
           <Router />
+          <CookieConsent />
           <Toaster />
         </TooltipProvider>
       </AuthProvider>
